@@ -1,0 +1,234 @@
+import axios from "axios";
+import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Worker, Viewer } from "@react-pdf-viewer/core";
+//import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+//import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+import "@react-pdf-viewer/core/lib/styles/index.css";
+
+const ViewInstruction = () => {
+    const { id } = useParams();
+
+    const [users, setUsers] = useState([]);
+    const [senderId, setSenderId] = useState("");
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [letterNumber, setLetterNumber] = useState("");
+    const [createdDate, setCreatedDate] = useState("");
+    const [start, setStart] = useState("");
+    const [end, setEnd] = useState("");
+    const [file, setFile] = useState("");
+    const [previewState, setPreviewState] = useState(false);
+    const [pdfUrl, setPdfUrl] = useState("");
+
+    function getUsernameFromId(targetId) {
+        let senderName = null;
+        for (let i = 0; i < users.length; i++) {
+            if (users[i]._id === targetId) {
+                senderName = users[i].username;
+            }
+        }
+        return senderName;
+    }
+
+    useEffect(() => {
+        axios.get(`http://localhost:3500/users`).then((res) => {
+            setUsers(res.data);
+        });
+        axios.get(`http://localhost:3500/letters`).then((res) => {
+            //setTargetLetter(res.data.filter((letter) => letter._id === id))
+            const letter = res.data.filter((letter) => letter._id === id);
+            //console.log(letter[0].title)
+            setSenderId(letter[0].user);
+            setTitle(letter[0].title);
+            setDescription(letter[0].description);
+            setLetterNumber(letter[0].letterNumber);
+            setStart(letter[0].start);
+            setEnd(letter[0].end);
+            setFile(letter[0].file);
+            setCreatedDate(letter[0].createdAt);
+        });
+        axios
+            .get(`http://localhost:3500/letters/download/${id}`, {
+                responseType: "blob",
+            })
+            .then((res) => {
+                const blob = new Blob([res.data], { type: res.data.type });
+                const pdfurl = window.URL.createObjectURL(blob);
+                setPdfUrl(pdfurl);
+            });
+    }, []);
+
+    // const downloadFile = async (ID) => {
+    //     try {
+    //       const res = await axios.get(
+    //         `http://localhost:3500/letters/download/${ID}`,
+    //         { responseType: "blob" }
+    //       );
+    //       const blob = new Blob([res.data], { type: res.data.type });
+    //       const link = document.createElement("a");
+    //       link.href = window.URL.createObjectURL(blob);
+    //       link.download = "dlass-letter-download.pdf";
+    //       //link.download = res.headers["content-disposition"].split("filename=")[1];
+    //       link.click();
+    //     } catch (error) {
+    //       console.log(error);
+    //     }
+    // }
+
+    function downloadFile() {
+        const link = document.createElement("a");
+        link.href = pdfUrl;
+        link.download = "dlass-letter-download.pdf";
+        link.click();
+    }
+
+    function previewBlock() {
+        return (
+            <div
+                style={{
+                    border: "1px solid rgba(0, 0, 0, 0.3)",
+                    height: "500px",
+                }}
+            >
+                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+                    <Viewer fileUrl={pdfUrl} />
+                </Worker>
+            </div>
+        );
+    }
+
+    function togglePreview() {
+        setPreviewState(!previewState);
+    }
+
+    //console.log(file)
+
+    const created = new Date(createdDate).toLocaleString("en-US", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+    })
+    const startDate = new Date(start).toLocaleString('en-US', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric'
+    })
+    const endDate = new Date(end).toLocaleString('en-US', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric'
+    })
+
+    return (
+        <div className="p-3 rounded bg-white shadow-sm mb-5">
+
+            <div className="card text-bg-light d-flex flex-row gap-2 p-3 text-secondary">
+                <i className="bi bi-info-circle text-secondary"></i>
+                This is a view of the information contained within the instruction and the information that help identify it. You can download the PDF file attached to the instruction by clicking the 'Download Instruction' button or toggle a preview of the PDF file by clicking the 'Toggle Preview' button. You cannot edit the details of this instruction because you are not the author.
+            </div>
+
+            <header className="my-4">
+                <h4 className="mono-text">Instruction Details</h4>
+            </header>
+
+            <div className="d-flex gap-1">
+                <Link 
+                    className='btn btn-sm btn-secondary me-5' 
+                    to="/dash/instructions">
+                    <i class="bi bi-arrow-left"></i> Instructions List
+                </Link>
+
+                <button 
+                    className="btn btn-sm btn-primary"
+                    onClick={downloadFile}>
+                    <i class="bi bi-file-earmark-arrow-down"></i> Download Instruction
+                </button>
+                <button
+                    className='btn btn-sm btn-primary' 
+                    onClick={togglePreview}>
+                    <i class="bi bi-file-pdf"></i> Toggle Preview
+                </button>
+                {/* <button
+                    className='btn btn-sm btn-success'
+                    disabled>
+                    <i class="bi bi-vector-pen"></i> Approve and Sign
+                </button>
+                <button
+                    className='btn btn-sm btn-danger'
+                    disabled>
+                    <i class="bi bi-x-lg"></i> Reject Submission
+                </button>
+                <button
+                    className="btn btn-sm btn-danger"
+                    title="Delete" disabled>
+                    <i class="bi bi-trash"></i> Delete Letter
+                </button> */}
+            </div>
+
+            <div className="d-flex mt-3 gap-2">
+
+                <div className="card w-25">
+                    <div class="card-header text-secondary">
+                        Content Information
+                    </div>
+                    <div className="card-body">
+                    <div className="">
+                        <h6>Title</h6>
+                        <span className="text-secondary">{title}</span>
+                    </div>
+
+                    <div className="mt-4">
+                        <h6>Number</h6>
+                        <span className="text-secondary">{letterNumber}</span>
+                    </div>
+
+                    <div className="mt-4">
+                        <h6>Sender</h6>
+                        <span className="text-secondary">
+                            {getUsernameFromId(senderId)}
+                        </span>
+                    </div>
+
+                    <div className="mt-4">
+                        <h6>Description</h6>
+                        <span className="text-secondary">{description}</span>
+                    </div>
+
+                    <div className="mt-4">
+                        <h6>Issued at</h6>
+                        <span className="text-secondary">{created}</span>
+                    </div>
+
+                    <div className="mt-4">
+                        <h6>Instruction Staring Date</h6>
+                        <span className="text-secondary">{startDate}</span>
+                    </div>
+
+                    <div className="mt-4">
+                        <h6>Instruction Ending Date</h6>
+                        <span className="text-secondary">{endDate}</span>
+                    </div>
+                    </div>
+                    
+                </div>
+
+                <div className="card w-75">
+                    <div class="card-header text-secondary">
+                        Letter Preview Pane
+                    </div>
+                    <div class="card-body">
+                    {previewState ? previewBlock() : <i className="text-secondary">Preview Not Toggled</i>}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    );
+};
+
+export default ViewInstruction;
