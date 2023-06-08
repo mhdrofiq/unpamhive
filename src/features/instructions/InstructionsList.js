@@ -24,7 +24,7 @@ const InstructionsList = () => {
 
   const tableData = RegularLetters.map((letter) => {
     return <InstructionsListRows letter={letter} users={users} key={letter._id} />;
-  });
+  }).reverse()
 
   return (
     <div className="p-3 rounded bg-white shadow-sm">

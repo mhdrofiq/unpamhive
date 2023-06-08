@@ -1,4 +1,5 @@
 import Button from "react-bootstrap/Button";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const SubmissionsListRows = ({ letter, users }) => {
@@ -37,6 +38,19 @@ const SubmissionsListRows = ({ letter, users }) => {
     const handleView = () => navigate(`/dash/submissions/view/${letter._id}`)
     const handleEdit = () => navigate(`/dash/submissions/edit/${letter._id}`)
 
+    let editButton;
+    if(letter.letterStatus === "Open") {
+        editButton = (
+            <>
+                <button className="btn btn-sm btn-outline-warning" onClick={handleEdit}>
+                <i className="bi bi-pencil-square"></i> Edit
+                </button>
+            </>
+        )
+    } else {
+        editButton = null
+    }
+
     return (
         <tr>
         <td>{created}</td>
@@ -46,11 +60,9 @@ const SubmissionsListRows = ({ letter, users }) => {
         <td className={statusStyle()}>{letter.letterStatus}</td>
         <td className="d-flex flex-row gap-1">
             <button className="btn btn-sm btn-outline-primary" onClick={handleView}>
-            <i className="bi bi-envelope-open"></i> View
+                <i className="bi bi-envelope-open"></i> View
             </button>
-            <button className="btn btn-sm btn-outline-warning" onClick={handleEdit}>
-            <i className="bi bi-pencil-square"></i> Edit
-            </button>
+            {editButton}
         </td>
         </tr>
     );

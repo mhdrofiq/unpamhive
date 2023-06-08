@@ -24,8 +24,8 @@ const SubmissionsList = () => {
   const tableData = RegularLetters.map((letter) => {
     return (
       <SubmissionsListRows letter={letter} users={users} key={letter._id} />
-    );
-  });
+    )
+  }).reverse()
 
   return (
     <div className="p-3 rounded bg-white shadow-sm">

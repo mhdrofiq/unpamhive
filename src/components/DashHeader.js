@@ -10,6 +10,7 @@ const SUBMISSIONS_REGEX = /^\/dash\/submissions(\/)?$/
 const USERS_REGEX = /^\/dash\/users(\/)?$/
 const LETTERS_REGEX = /^\/dash\/letters(\/)?$/
 const INSTRUCTIONS_REGEX = /^\/dash\/instructions(\/)?$/
+const SIGNATURE_REGEX = /^\/dash\/signature(\/)?$/
 
 const DashHeader = () => {
 
@@ -33,6 +34,7 @@ const DashHeader = () => {
     const onSubmissionsClicked = () => navigate('/dash/submissions')
     const onLettersClicked = () => navigate('/dash/letters')
     const onInstructionsClicked = () => navigate('/dash/instructions')
+    const onSignatureClicked = () => navigate('/dash/signature')
 
     // let usersButton = null
     // if (isStaff) {
@@ -86,24 +88,24 @@ const DashHeader = () => {
         //}
     }
 
+    let signatureButton = null
+    // if (isStaff){
+        if (!SIGNATURE_REGEX.test(pathname)) {
+            signatureButton = (
+                <a className='nav-link' href='#' onClick={onSignatureClicked}>My Signature</a>
+            )
+        } else {
+            signatureButton = (
+                <a className='nav-link disabled' href='#'>My Signature</a>
+            )
+        //}
+    }
+
     const logoutButton = (
         <a className='dropdown-item' href='#'>Log out</a>
     )
 
     // const errClass = isError ? "errmsg" : "offscreen"
-
-    let buttonContent
-    // if (isLoading) {
-    //     buttonContent = <p>Logging Out...</p>
-    // } else {
-        buttonContent = (
-            <>
-                {SubmissionsButton}
-                {lettersButton}
-                {logoutButton}
-            </>
-        )
-    //}
 
     const content = (
        
@@ -130,6 +132,9 @@ const DashHeader = () => {
                         </li>
                         <li className="nav-item">
                         {instructionsButton}
+                        </li>
+                        <li className="nav-item">
+                        {signatureButton}
                         </li>
                        
                     </ul>

@@ -62,7 +62,6 @@ const EditSubmission = () => {
       //console.log(filename)
       const oldfile = new File([blob], filename, {type: 'application/pdf'})
       setFile(oldfile);
-      // console.log(file);
     });
   }, [filename])
 
@@ -83,6 +82,7 @@ const EditSubmission = () => {
       formData.append("title", title);
       formData.append("letterType", "Submission");
       formData.append("description", description);
+      formData.append("letterStatus", 'Open');
       formData.append("rejectMessage", '');
       formData.append("file", file);
       const res = await axios.patch("http://localhost:3500/letters", formData);
@@ -93,7 +93,7 @@ const EditSubmission = () => {
       setCategory("");
       setTitle("");
       setDescription("");
-      file("");
+      setFile("");
     } catch (err) {
       console.log(err);
     }

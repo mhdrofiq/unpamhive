@@ -3,8 +3,8 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Worker, Viewer } from "@react-pdf-viewer/core";
-//import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
-//import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+import { PDFDocument } from "pdf-lib";
+import addSign from "../../img/addsign.png";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 
 const ViewSubmission = () => {
@@ -20,10 +20,11 @@ const ViewSubmission = () => {
   const [letterStatus, setLetterStatus] = useState("");
   const [createdDate, setCreatedDate] = useState("");
   const [file, setFile] = useState("");
-  const [filename, setFilename] = useState('');
+  const [filename, setFilename] = useState("");
   const [previewState, setPreviewState] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState("");
+  const [pdfUrl, setPdfUrl] = useState([]);
   const [rejectMessage, setRejectMessage] = useState("");
+  const [hasSignature, setHasSignature] = useState(false);
 
   function getUsernameFromId(targetId) {
     let senderName = null;
@@ -35,8 +36,8 @@ const ViewSubmission = () => {
     return senderName;
   }
 
-  function getFilename(str){
-    return str.replace("uploads\\", "")
+  function getFilename(str) {
+    return str.replace("uploads\\", "");
   }
 
   useEffect(() => {
@@ -67,18 +68,41 @@ const ViewSubmission = () => {
         const pdfurl = window.URL.createObjectURL(blob);
         setPdfUrl(pdfurl);
       });
+    //TODO: change the uid in the url to the current user's id
+      //peter: 64356b831b9b8adebda34eea
+      //rofiq: 6451fdc135e7ffbbe962af29
+    axios
+      .get(`http://localhost:3500/signature/64356b831b9b8adebda34eea`, {
+        responseType: "blob",
+      })
+      .then((res) => {
+        if (res.data.type === "image/png") {
+          setHasSignature(true);
+        } else {
+          setHasSignature(false);
+        }
+      });
   }, []);
 
+  useEffect(() => {
+    axios
+      .get(`http://localhost:3500/letters/download/${id}`, {
+        responseType: "blob",
+      })
+      .then((res) => {
+        const blob = new Blob([res.data], { type: res.data.type });
+        //console.log(filename)
+        const oldfile = new File([blob], filename, { type: "application/pdf" });
+        setFile(oldfile);
+        // console.log(file);
+      });
+  }, [filename]);
+
   const onRejectMessageChanged = (e) => {
-    setRejectMessage(e.target.value)
-    setLetterStatus('Rejected')
+    setRejectMessage(e.target.value);
   };
 
-  const setApprove = (e) => {
-    setLetterStatus('Approved')
-  }
-
-  const onLetterStatusChanged = async (e) => {
+  const onLetterReject = async (e) => {
     e.preventDefault();
     try {
       const formData = new FormData();
@@ -88,13 +112,13 @@ const ViewSubmission = () => {
       formData.append("category", category);
       formData.append("title", title);
       formData.append("letterType", "Submission");
-      formData.append("letterStatus", letterStatus);
+      formData.append("letterStatus", "Rejected");
       formData.append("description", description);
       formData.append("rejectMessage", rejectMessage);
       formData.append("file", file);
 
       const res = await axios.patch("http://localhost:3500/letters", formData);
-      
+
       console.log(res.data);
       setSenderId("");
       setRecipient("");
@@ -102,26 +126,78 @@ const ViewSubmission = () => {
       setTitle("");
       setDescription("");
       setLetterStatus("");
-      file("");
+      setFile("");
     } catch (err) {
       console.log(err);
     }
     navigate("/dash/submissions");
-  }
+  };
 
-  useEffect(() => {
-    axios
-    .get(`http://localhost:3500/letters/download/${id}`, {
-      responseType: "blob",
-    })
-    .then((res) => {
-      const blob = new Blob([res.data], { type: res.data.type });
-      //console.log(filename)
-      const oldfile = new File([blob], filename, {type: 'application/pdf'})
-      setFile(oldfile);
-      // console.log(file);
+  const onLetterApprove = async (e) => {
+    e.preventDefault();
+    const existingPdfBytes = await fetch(
+      `http://localhost:3500/letters/download/${id}`
+    ).then((res) => res.arrayBuffer());
+
+    const pngImageBytes = await fetch(
+      "http://localhost:3500/signature/64356b831b9b8adebda34eea"
+    ).then((res) => res.arrayBuffer());
+    //console.log(pngImageBytes)
+
+    //load pdf file
+    const pdfDoc = await PDFDocument.load(existingPdfBytes);
+    const pngImage = await pdfDoc.embedPng(pngImageBytes);
+    const pngDims = pngImage.scaleToFit(100, 300);
+
+    const pages = pdfDoc.getPages();
+    const firstPage = pages[0];
+
+    firstPage.drawImage(pngImage, {
+      // x: firstPage.getWidth() / 5.5 - pngDims.width / 2,
+      x: firstPage.getWidth() / 5.5 - pngDims.width / 2,
+      y: firstPage.getHeight() / 6 - pngDims.height / 2,
+      width: pngDims.width,
+      height: pngDims.height,
     });
-  }, [filename])
+
+    const pdfBytes = await pdfDoc.save();
+    const bytes = new Uint8Array(pdfBytes);
+    const blob = new Blob([bytes], { type: "application/pdf" });
+    const newfile = new File([blob], filename, { type: "application/pdf" });
+    //console.log(newfile)
+    //setFile(blob);
+    // const url = URL.createObjectURL( blob );
+    // setPdfUrl(url);
+    //console.log(file)
+    //onLetterEditSubmit("Approved")(e);
+    try {
+      const formData = new FormData();
+      formData.append("id", id);
+      formData.append("user", senderId);
+      formData.append("recipient", recipient);
+      formData.append("category", category);
+      formData.append("title", title);
+      formData.append("letterType", "Submission");
+      formData.append("letterStatus", "Approved");
+      formData.append("description", description);
+      formData.append("rejectMessage", rejectMessage);
+      formData.append("file", newfile);
+
+      const res = await axios.patch("http://localhost:3500/letters", formData);
+
+      console.log(res.data);
+      setSenderId("");
+      setRecipient("");
+      setCategory("");
+      setTitle("");
+      setDescription("");
+      setLetterStatus("");
+      setFile("");
+    } catch (err) {
+      console.log(err);
+    }
+    navigate("/dash/submissions");
+  };
 
   function downloadFile() {
     const link = document.createElement("a");
@@ -172,38 +248,97 @@ const ViewSubmission = () => {
 
   let rejectBlock;
   if (letterStatus === "Rejected") {
-    rejectBlock = 
-    <div className="mt-4">
-      <h6>Cause of Rejection</h6>
-      <span className='text-secondary'>{rejectMessage}</span>
-    </div>
+    rejectBlock = (
+      <div className="mt-4">
+        <h6>Cause of Rejection</h6>
+        <span className="text-secondary">{rejectMessage}</span>
+      </div>
+    );
   } else {
     rejectBlock = null;
   }
 
   let buttonCollection;
-  if(letterStatus === "Open") {
-    buttonCollection =  
-    <>
-    <button className="btn btn-sm btn-success" data-bs-toggle="modal"
-    data-bs-target="#approveModal">
-      <i className="bi bi-vector-pen"></i> Approve and Sign
-    </button>
-    <button className="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
-      <i className="bi bi-x-lg"></i> Reject Submission
-    </button>
-    </>
+  if (letterStatus === "Open") {
+    buttonCollection = (
+      <>
+        <button
+          className="btn btn-sm btn-success"
+          data-bs-toggle="modal"
+          data-bs-target="#approveModal"
+        >
+          <i className="bi bi-vector-pen"></i> Approve and Sign
+        </button>
+        <button
+          className="btn btn-sm btn-danger"
+          data-bs-toggle="modal"
+          data-bs-target="#rejectModal"
+        >
+          <i className="bi bi-x-lg"></i> Reject Submission
+        </button>
+      </>
+    );
   } else {
-    buttonCollection = 
-    <>
-    <button className="btn btn-sm btn-success" data-bs-toggle="modal"
-    data-bs-target="#approveModal" disabled>
-      <i className="bi bi-vector-pen"></i> Approve and Sign
-    </button>
-    <button className="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal" disabled>
-      <i className="bi bi-x-lg"></i> Reject Submission
-    </button>
-    </>
+    buttonCollection = (
+      <>
+        <button
+          className="btn btn-sm btn-success"
+          data-bs-toggle="modal"
+          data-bs-target="#approveModal"
+          disabled
+        >
+          <i className="bi bi-vector-pen"></i> Approve and Sign
+        </button>
+        <button
+          className="btn btn-sm btn-danger"
+          data-bs-toggle="modal"
+          data-bs-target="#rejectModal"
+          disabled
+        >
+          <i className="bi bi-x-lg"></i> Reject Submission
+        </button>
+      </>
+    );
+  }
+
+  let modalFooter;
+  if(hasSignature){
+    modalFooter = (
+      <div className="modal-footer">
+      <button
+        type="button"
+        className="btn btn-secondary"
+        data-bs-dismiss="modal"
+      >
+        Close
+      </button>
+      <button
+        type="button"
+        data-bs-dismiss="modal"
+        className="btn btn-success"
+        onClick={onLetterApprove}
+      >
+        Confirm
+      </button>
+    </div>
+    )
+  } else {
+    modalFooter = (
+      <div className="modal-footer">
+      <div className="card d-flex flex-row gap-2 p-3 text-danger" style={{ backgroundColor: "#ffcad4" }}>
+        <i className="bi bi-exclamation-triangle"></i>
+        You can't approve this submission because you haven't uploaded your signature into the system. Click the 'My Signature' tab in the navbar and upload your signature, then return to this submission and click the 'Approve and Sign' button once again.
+      </div>
+
+      <button
+        type="button"
+        className="btn btn-secondary mt-3"
+        data-bs-dismiss="modal"
+      >
+        Close
+      </button>
+      </div>
+    )
   }
 
   return (
@@ -240,15 +375,60 @@ const ViewSubmission = () => {
           <i className="bi bi-file-pdf"></i> Toggle Preview
         </button>
         {buttonCollection}
-       
       </div>
 
-      <div className="modal fade" id="approveModal" tabIndex="-1" aria-hidden="true">
+      <div
+        className="modal fade"
+        id="approveModal"
+        tabIndex="-1"
+        aria-hidden="true"
+      >
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h1 className="modal-title fs-5">
-                TBA Modal Title
+              <h1 className="modal-title fs-5">Sign and approve this letter</h1>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              {/* <button onClick={setApprove}>
+                  Click to change letter status to approved
+                </button> */}
+              <div className="card text-bg-light d-flex flex-row gap-2 p-3 text-secondary">
+                <i className="bi bi-info-circle text-secondary"></i>
+                In order to approve this student's submission, you must sign
+                their attatched PDF document. This will automatically embed your
+                signature into a pre determined area of the document. Therefore,
+                to complete this process you must first upload a PNG image of
+                your signature through the 'My Signature' tab in the navbar.
+              </div>
+              <div className="d-flex justify-content-center">
+                <img className="border mt-3" src={addSign} width={400}></img>
+              </div>
+            </div>
+
+            {modalFooter}
+            
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="modal fade"
+        id="rejectModal"
+        tabIndex="-1"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-lg">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-5" id="exampleModalLabel">
+                Please enter the reason for rejection
               </h1>
               <button
                 type="button"
@@ -258,9 +438,30 @@ const ViewSubmission = () => {
               ></button>
             </div>
             <div className="modal-body">
-                <button onClick={setApprove}>
-                  Click to change letter status to approved
-                </button>
+              <div className="card text-bg-light d-flex flex-row gap-2 p-3 text-secondary">
+                <i className="bi bi-info-circle text-secondary"></i>
+                In order to complete the rejection of this submission, you must
+                provide the student with the reason for rejection. Some common
+                reasons for rejection include: formatting issues, missing
+                information, incorrect information, etc. The more specific the
+                reason is, the better it will help the student understand what
+                they need to fix, or why their submission cannot ever be
+                approved by you.
+              </div>
+              <form>
+                <div className="mb-3">
+                  <label htmlFor="rejectMessage" className="col-form-label">
+                    Reason:
+                  </label>
+                  <textarea
+                    className="form-control"
+                    id="rejectMessage"
+                    value={rejectMessage}
+                    onChange={onRejectMessageChanged}
+                    required
+                  ></textarea>
+                </div>
+              </form>
             </div>
             <div className="modal-footer">
               <button
@@ -268,53 +469,32 @@ const ViewSubmission = () => {
                 className="btn btn-secondary"
                 data-bs-dismiss="modal"
               >
-                close
+                Close
               </button>
               <button
                 type="button"
+                className="btn btn-primary"
                 data-bs-dismiss="modal"
-                className="btn btn-success"
-                onClick={onLetterStatusChanged}
+                onClick={onLetterReject}
               >
-                Confirm
+                Send
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="modal fade" id="rejectModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div className="modal-dialog modal-lg">
-        <div className="modal-content">
-        <div className="modal-header">
-            <h1 className="modal-title fs-5" id="exampleModalLabel">Please enter the reason for rejection</h1>
-            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div className="modal-body">
-        <div className="card text-bg-light d-flex flex-row gap-2 p-3 text-secondary">
-        <i className="bi bi-info-circle text-secondary"></i>
-        In order to complete the rejection of this submission, you must provide the student with the reason for rejection. Some common reasons for rejection include: formatting issues, missing information, incorrect information, etc. The more specific the reason is, the better it will help the student understand what they need to fix, or why their submission cannot ever be approved by you.
-        </div>
-            <form>
-            <div className="mb-3">
-                <label htmlFor="rejectMessage" className="col-form-label">Reason:</label>
-                <textarea className="form-control" id="rejectMessage" value={rejectMessage} onChange={onRejectMessageChanged} required></textarea>
-            </div>
-            </form>
-        </div>
-        <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" className="btn btn-primary" data-bs-dismiss="modal" onClick={onLetterStatusChanged}>Send</button>
-        </div>
-        </div>
-    </div>
-    </div>
-
       <div className="d-flex mt-3 gap-2">
         <div className="card w-25">
           <div className="card-header text-secondary">Content Information</div>
           <div className="card-body">
+
             <div className="">
+              <h6>Submission Status</h6>
+              <span className={statusStyle()}>{letterStatus}</span>
+            </div>
+
+            <div className="mt-4">
               <h6>Title</h6>
               <span className="text-secondary">{title}</span>
             </div>
@@ -341,13 +521,7 @@ const ViewSubmission = () => {
               <span className="text-secondary">{created}</span>
             </div>
 
-            <div className="mt-4">
-              <h6>Submission Status</h6>
-              <span className={statusStyle()}>{letterStatus}</span>
-            </div>
-
             {rejectBlock}
-
           </div>
         </div>
 

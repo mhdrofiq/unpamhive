@@ -118,10 +118,13 @@ const CreateSubmission = () => {
             style={{ backgroundColor: "#c1fba4" }}
           >
             <h5>Before you start</h5>
-            We recommend using our provided official templates for letters. This
+            <p><b>Please use our provided official templates for letters.</b> This
             helps you reduce mistakes caused by formatting, typos, and poor
-            grammar! If you find a template that suits your needs, download it
-            and fill it out. Then, upload it to the form below.
+            grammar! More importantly, this also allows us to automatically embed signatures onto your PDF much more consistently.</p>
+            <p>
+              If you find a template that suits your needs, download it
+              and fill it out. Then, upload it to the form below.
+            </p>
             <div className="mt-3">
               <a className="btn btn-sm btn-outline-success">
                 <i class="bi bi-archive"></i> Link to official templates

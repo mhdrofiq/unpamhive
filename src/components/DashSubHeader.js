@@ -17,7 +17,7 @@ const DashSubHeader = () => {
                 </a> */}
                 <li className="nav-link text-secondary">Current User: placeholder</li>
                 <li className="nav-link text-secondary">User Type: placeholder</li>
-                <li className="nav-link text-secondary ms-auto">{today}</li>
+                <li className="nav-link text-secondary ms-auto">Logged in at: {today}</li>
             </nav>
         </div>
     )

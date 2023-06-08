@@ -47,6 +47,7 @@ const Login = () => {
       const role = res?.data?.role;
       setAuth({ username, password, role, accessToken });
       //setSuccess(true);
+      //console.log("Login Success", accessToken, role);
       navigate("/dash");
     } catch(err) {
       if (!err?.response) {

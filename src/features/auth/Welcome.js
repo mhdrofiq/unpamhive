@@ -22,6 +22,8 @@ const Welcome = () => {
                 <p><Link to="/dash/submissions/new">Create submission</Link></p>
                 <p><Link to="/dash/instructions/new">Create instruction</Link></p>
                 <p><Link to="/dash/users">View users list</Link></p>
+                <p><Link to="/dash/submissions/addImage">add image</Link></p>
+                <p><Link to="/dash/signature">manage signature</Link></p>
             </div>
         </div>
 
