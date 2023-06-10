@@ -1,34 +1,38 @@
-import axios from "axios";
+// import axios from "axios";
+import axios from '../../api/axios'
+import useAuth from "../../hooks/useAuth";
 
 import { useState, useEffect } from "react";
 import { CATEGORIES } from "../../config/categories";
 import { useNavigate, Link } from "react-router-dom";
 
 const CreateSubmission = () => {
+
+  const navigate = useNavigate();
+  const { auth } = useAuth();
+  const isStaff = auth?.role === 'Staff'
+
   const [staffusers, setStaffUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
-  const [user, setUser] = useState("");
-  const [recipient, setRecipient] = useState("");
-  const [category, setCategory] = useState(CATEGORIES[0]);
+  const [user, setUser] = useState(auth?.userId);
+  const [recipient, setRecipient] = useState();
+  const [category, setCategory] = useState(Object.values(CATEGORIES)[0]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState("");
 
-  const navigate = useNavigate();
-
   useEffect(() => {
-    axios.get(`http://localhost:3500/users`).then((res) => {
+    axios.get(`/users`).then((res) => {
       setAllUsers(res.data);
-      setUser(res.data[0]._id); // set default sender id
     });
 
-    axios.get(`http://localhost:3500/users`).then((res) => {
-      setStaffUsers(res.data.filter((user) => user.role === "Staff"));
-      setRecipient(res.data[0]._id); // set default recipient id
+    axios.get(`/users`).then((res) => {
+      const fileteredUsers = res.data.filter((user) => (user.role === "Staff"))
+      setStaffUsers(fileteredUsers);
+      setRecipient(fileteredUsers[0]._id)
     });
   }, []);
 
-  const onUserChanged = (e) => setUser(e.target.value);
   const onRecipientChanged = (e) => setRecipient(e.target.value);
   const onCategoryChanged = (e) => setCategory(e.target.value);
   const onTitleChanged = (e) => setTitle(e.target.value);
@@ -47,7 +51,7 @@ const CreateSubmission = () => {
       formData.append("description", description);
       formData.append("rejectMessage", '');
       formData.append("file", file);
-      const res = await axios.post("http://localhost:3500/letters", formData);
+      const res = await axios.post("/letters", formData);
       console.log(res.data);
       //this.props.history.push("/letters");
       setUser("");
@@ -61,14 +65,6 @@ const CreateSubmission = () => {
       console.log(err);
     }
   };
-
-  const userOptions = allUsers.map((user) => {
-    return (
-      <option key={user._id} value={user._id}>
-        {user.username}
-      </option>
-    );
-  });
 
   const staffOptions = staffusers.map((user) => {
     return (
@@ -103,7 +99,7 @@ const CreateSubmission = () => {
 
       <div className="d-flex gap-1">
         <Link className="btn btn-sm btn-secondary me-5" to="/dash/submissions">
-          <i class="bi bi-arrow-left"></i> My Submissions
+          <i className="bi bi-arrow-left"></i> My Submissions
         </Link>
       </div>
 
@@ -127,23 +123,10 @@ const CreateSubmission = () => {
             </p>
             <div className="mt-3">
               <a className="btn btn-sm btn-outline-success">
-                <i class="bi bi-archive"></i> Link to official templates
+              <i className="bi bi-file-text"></i> Link to official templates
               </a>
             </div>
           </div>
-
-          <label className="form-label mt-3 text-secondary" htmlFor="username">
-            Sender
-          </label>
-          <select
-            id="username"
-            name="username"
-            className="form-select"
-            value={user}
-            onChange={onUserChanged}
-          >
-            {userOptions}
-          </select>
 
           <label className="form-label mt-3 text-secondary" htmlFor="recipient">
             Recipient
@@ -212,9 +195,8 @@ const CreateSubmission = () => {
           ></input>
 
           <div className="card d-flex flex-row gap-2 p-3 mt-3" style={{backgroundColor: '#fae588'}}>
-            <i class="bi bi-exclamation-triangle"></i>
+            <i className="bi bi-exclamation-triangle"></i>
             Please make sure that all information is correct before submitting.
-            Once submitted, you will not be able to edit the letter.
           </div>
 
           <div className="mt-4">

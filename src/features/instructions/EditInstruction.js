@@ -1,20 +1,21 @@
-import axios from "axios";
+// import axios from "axios";
+import axios from '../../api/axios'
 import DatePicker from "react-datepicker";
 
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { CATEGORIES } from "../../config/categories";
 import { useNavigate, Link } from "react-router-dom";
 
 import "react-datepicker/dist/react-datepicker.css";
 
 const EditInstruction = () => {
-  const { id } = useParams();
+
+  const { id } = useParams(); //this letter's id
   const navigate = useNavigate();
 
   const [staffusers, setStaffUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
-  const [user, setUser] = useState("");
+  const [user, setUser] = useState('');
   const [recipient, setRecipient] = useState("");
   const [title, setTitle] = useState("");
   const [letterNumber, setLetterNumber] = useState("");
@@ -29,21 +30,22 @@ const EditInstruction = () => {
     for (let i = 0; i < allUsers.length; i++) {
       if (allUsers[i]._id === targetId) {
         senderName = allUsers[i].username;
+        break;
       }
     }
     return senderName;
   }
 
   useEffect(() => {
-    axios.get(`http://localhost:3500/users`).then((res) => {
+    axios.get(`/users`).then((res) => {
       setAllUsers(res.data);
     });
 
-    axios.get(`http://localhost:3500/users`).then((res) => {
+    axios.get(`/users`).then((res) => {
       setStaffUsers(res.data.filter((user) => user.role === "Staff"));
     });
 
-    axios.get(`http://localhost:3500/letters`).then((res) => {
+    axios.get(`/letters`).then((res) => {
       const letter = res.data.filter((letter) => letter._id === id);
       setUser(letter[0].user);
       setRecipient(letter[0].recipient);
@@ -56,7 +58,7 @@ const EditInstruction = () => {
       setFile(letter[0].file);
     });
     axios
-      .get(`http://localhost:3500/letters/download/${id}`, {
+      .get(`/letters/download/${id}`, {
         responseType: "blob",
       })
       .then((res) => {
@@ -89,7 +91,7 @@ const EditInstruction = () => {
       formData.append("start", start);
       formData.append("end", end);
       formData.append("file", file);
-      const res = await axios.patch("http://localhost:3500/letters", formData);
+      const res = await axios.patch("/letters", formData);
       console.log(res.data);
       //this.props.history.push("/letters");
       setUser("");
@@ -111,7 +113,7 @@ const EditInstruction = () => {
     try {
       // const formData = new FormData();
       // formData.append("id", id);
-      const res = await axios.delete("http://localhost:3500/letters", {
+      const res = await axios.delete("/letters", {
         data: { id: id },
       });
       console.log(res.data);
@@ -121,26 +123,10 @@ const EditInstruction = () => {
     navigate("/dash/instructions");
   };
 
-  const userOptions = allUsers.map((user) => {
-    return (
-      <option key={user._id} value={user._id}>
-        {user.username}
-      </option>
-    );
-  });
-
   const staffOptions = staffusers.map((user) => {
     return (
       <option key={user._id} value={user._id}>
         {user.username}
-      </option>
-    );
-  });
-
-  const categoryOptions = Object.values(CATEGORIES).map((type) => {
-    return (
-      <option key={type} value={type}>
-        {type}
       </option>
     );
   });
@@ -214,21 +200,8 @@ const EditInstruction = () => {
           onSubmit={onSubmit}
           encType="multipart/form-data"
         >
-          <label className="form-label text-secondary" htmlFor="username">
-            Sender
-          </label>
-          <select
-            id="username"
-            name="username"
-            className="form-select"
-            value={getUsernameFromId(user)}
-            onChange={onUserChanged}
-            required
-          >
-            {userOptions}
-          </select>
 
-          <label className="form-label mt-3 text-secondary" htmlFor="recipient">
+          <label className="form-label text-secondary" htmlFor="recipient">
             Recipient
           </label>
           <select

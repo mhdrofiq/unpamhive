@@ -1,15 +1,20 @@
-import axios from "axios";
+// import axios from "axios";
+import axios from '../../api/axios.js'
+import DatePicker from "react-datepicker";
+import useAuth from "../../hooks/useAuth";
 
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import DatePicker from "react-datepicker";
+
 import "react-datepicker/dist/react-datepicker.css";
 
-
 const CreateInstruction = () => {
+
+    const navigate = useNavigate()
+    const { auth } = useAuth();
+
     const [staffusers, setStaffUsers] = useState([]);
-    const [allUsers, setAllUsers] = useState([]);
-    const [user, setUser] = useState("");
+    const [user, setUser] = useState(auth?.userId);
     const [recipient, setRecipient] = useState("");
     const [title, setTitle] = useState("");
     const [letterNumber, setLetterNumber] = useState("");
@@ -18,21 +23,14 @@ const CreateInstruction = () => {
     const [endDate, setEndDate] = useState(new Date())
     const [file, setFile] = useState("");
 
-    const navigate = useNavigate()
-
     useEffect(() => {
-        axios.get(`http://localhost:3500/users`).then((res) => {
-            setAllUsers(res.data);
-            setUser(res.data[0]._id); // set default sender id
-        });
-
-        axios.get(`http://localhost:3500/users`).then((res) => {
-            setStaffUsers(res.data.filter((user) => user.role === "Staff"));
-            setRecipient(res.data[0]._id); // set default recipient id
+        axios.get(`/users`).then((res) => {
+            const fileteredUsers = res.data.filter((user) => (user.role === "Staff") && (user._id !== auth?.userId))
+            setStaffUsers(fileteredUsers);
+            setRecipient(fileteredUsers[0]._id); // set default recipient id
         });
     }, []);
 
-    const onUserChanged = (e) => setUser(e.target.value);
     const onRecipientChanged = (e) => setRecipient(e.target.value);
     const onTitleChanged = (e) => setTitle(e.target.value);
     const onLetterNumberChanged = (e) => setLetterNumber(e.target.value);
@@ -51,7 +49,7 @@ const CreateInstruction = () => {
             formData.append("start", startDate);
             formData.append("end", endDate);
             formData.append("file", file);
-            const res = await axios.post("http://localhost:3500/letters", formData);
+            const res = await axios.post("/letters", formData);
             console.log(res.data);
             //this.props.history.push("/letters");
             setUser("");
@@ -67,14 +65,6 @@ const CreateInstruction = () => {
             console.log(err);
         }
     };
-
-    const userOptions = allUsers.map((user) => {
-        return (
-            <option key={user._id} value={user._id}>
-                {user.username}
-            </option>
-        );
-    });
 
     const staffOptions = staffusers.map((user) => {
         return (
@@ -108,27 +98,15 @@ const CreateInstruction = () => {
                 onSubmit={onSubmit}
                 encType="multipart/form-data"
             >
-                <label className="form-label text-secondary" htmlFor="username">
-                    Sender
-                </label>
-                <select
-                    id="username"
-                    name="username"
-                    className="form-select"
-                    value={user}
-                    onChange={onUserChanged}
-                >
-                    {userOptions}
-                </select>
 
-                <label className="form-label mt-3 text-secondary" htmlFor="recipient">
+                <label className="form-label text-secondary" htmlFor="recipient">
                     Recipient
                 </label>
                 <select
                     id="recipient"
                     name="recipient"
                     className="form-select"
-                    // value={category}
+                    value={recipient}
                     onChange={onRecipientChanged}
                 >
                     {staffOptions}
@@ -144,7 +122,7 @@ const CreateInstruction = () => {
                     name="title"
                     type="text"
                     autoComplete="off"
-                    // value={title}
+                    value={title}
                     onChange={onTitleChanged}
                     required
                 />
@@ -158,7 +136,7 @@ const CreateInstruction = () => {
                     name="number"
                     type="text"
                     autoComplete="off"
-                    // value={letterNumber}
+                    value={letterNumber}
                     onChange={onLetterNumberChanged}
                     required
                 />
@@ -170,7 +148,7 @@ const CreateInstruction = () => {
                     className="form-control"
                     id="description"
                     name="description"
-                    // value={description}
+                    value={description}
                     onChange={onDescriptionChanged}
                     required
                 />

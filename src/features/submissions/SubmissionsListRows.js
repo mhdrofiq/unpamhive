@@ -1,10 +1,12 @@
-import Button from "react-bootstrap/Button";
-import axios from "axios";
+import useAuth from "../../hooks/useAuth";
+
 import { useNavigate } from "react-router-dom";
 
 const SubmissionsListRows = ({ letter, users }) => {
 
     const navigate = useNavigate()
+    const { auth } = useAuth();
+    const isStaff = auth?.role === 'Staff'
 
     function getUsernameFromId(targetId) {
         let senderName = null;
@@ -39,7 +41,7 @@ const SubmissionsListRows = ({ letter, users }) => {
     const handleEdit = () => navigate(`/dash/submissions/edit/${letter._id}`)
 
     let editButton;
-    if(letter.letterStatus === "Open") {
+    if(letter.letterStatus === "Open" && !isStaff) {
         editButton = (
             <>
                 <button className="btn btn-sm btn-outline-warning" onClick={handleEdit}>
@@ -54,7 +56,7 @@ const SubmissionsListRows = ({ letter, users }) => {
     return (
         <tr>
         <td>{created}</td>
-        <td>{getUsernameFromId(letter.user)}</td>
+        <td>{isStaff ? getUsernameFromId(letter.user) : getUsernameFromId(letter.recipient)}</td>
         <td>{letter.title}</td>
         <td>{letter.category}</td>
         <td className={statusStyle()}>{letter.letterStatus}</td>

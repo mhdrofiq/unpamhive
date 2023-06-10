@@ -1,30 +1,57 @@
-import axios from "axios";
+// import axios from "axios";
+import axios from "../../api/axios";
+import LettersListRows from "./LettersListRows";
+import useAuth from '../../hooks/useAuth';
+
 import { useState, useEffect } from "react";
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import { Link } from "react-router-dom";
-import LettersListRows from "./LettersListRows";
 
 const LettersList = () => {
-  // const [allLetters, setAllLetters] = useState([])
+
   const [RegularLetters, setRegularLetters] = useState([]);
   const [users, setUsers] = useState([]);
+  const { auth } = useAuth();
 
   useEffect(() => {
-    axios.get(`http://localhost:3500/letters`).then((res) => {
+    axios.get(`/letters`).then((res) => {
       setRegularLetters(
         res.data.filter((letter) => letter.letterType === "Letter")
       );
     });
-    axios.get(`http://localhost:3500/users`).then((res) => {
+    axios.get(`/users`).then((res) => {
       setUsers(res.data);
     });
   }, []);
 
-  //TODO: divide table data into inbound and outbound letters here
+  let inboundLetters = RegularLetters.filter((letter) => letter.recipient === auth?.userId)
 
-  const tableData = RegularLetters.map((letter) => {
-    return <LettersListRows letter={letter} users={users} key={letter._id} />;
-  }).reverse()
+  let outboundLetters = RegularLetters.filter((letter) => letter.user === auth?.userId)
+
+  let inboundTable = null;
+  let outboundTable = null;
+  let emptyMsgIn = null;
+  let emptyMsgOut = null;
+
+  if(inboundLetters.length !== 0) {
+    inboundTable = inboundLetters.map((letter) => {
+      return <LettersListRows letter={letter} users={users} type={0} key={letter._id} />; //0 for inbound letters
+    }).reverse()
+  } else {
+    emptyMsgIn = <div className="ps-2 text-secondary">
+      <p>You haven't recieved any letters yet.</p>
+      </div>
+  }
+
+  if(outboundLetters.length !== 0) {
+    outboundTable = outboundLetters.map((letter) => {
+      return <LettersListRows letter={letter} users={users} type={1} key={letter._id} />; //1 for outbound letters
+    }).reverse()
+  } else {
+    emptyMsgOut = <div className="ps-2 text-secondary">
+    <p>You haven't sent any letters yet.</p>
+    </div>
+  }
 
   return (
     <div className="p-3 rounded bg-white shadow-sm">
@@ -67,13 +94,38 @@ const LettersList = () => {
                 </th>
               </tr>
             </thead>
-            <tbody>{tableData}</tbody>
+            <tbody>{inboundTable}</tbody>
           </table>
+          {emptyMsgIn}
         </TabPanel>
+
         <TabPanel>
-          <h3>outbound content here</h3>
+          <table className="table table-sm table-bordered table-hover table-fixed mt-2">
+            <thead className="table-thead">
+              <tr>
+                <th scope="col" className="table-th" style={{ width: "10%" }}>
+                  Sent
+                </th>
+                <th scope="col" className="table-th" style={{ width: "10%" }}>
+                  To
+                </th>
+                <th scope="col" className="table-th" style={{ width: "40%" }}>
+                  Title
+                </th>
+                <th scope="col" className="table-th" style={{ width: "20%" }}>
+                  Category
+                </th>
+                <th scope="col" className="table-th" style={{ width: "10%" }}>
+                  Controls
+                </th>
+              </tr>
+            </thead>
+            <tbody>{outboundTable}</tbody>
+          </table>
+          {emptyMsgOut}
         </TabPanel>
       </Tabs>
+
     </div>
   );
 };

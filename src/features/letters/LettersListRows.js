@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-const LettersListRows = ({ letter, users }) => {
+const LettersListRows = ({ letter, users, type }) => {
 
     const navigate = useNavigate()
 
@@ -26,19 +26,35 @@ const LettersListRows = ({ letter, users }) => {
     const handleView = () => navigate(`/dash/letters/view/${letter._id}`)
     const handleEdit = () => navigate(`/dash/letters/edit/${letter._id}`)
 
+    let nameShown;
+    let editButtonShown;
+    switch(type){
+        case 0:
+            nameShown = getUsernameFromId(letter.user)
+            editButtonShown = null
+            break;
+        case 1:
+            nameShown = getUsernameFromId(letter.recipient)
+            editButtonShown = 
+                <button className="btn btn-sm btn-outline-warning" onClick={handleEdit}>
+                <i className="bi bi-pencil-square"></i> Edit
+                </button>
+            break
+        default:
+            nameShown = "No name error"
+    } 
+
     return (
         <tr>
         <td>{created}</td>
-        <td>{getUsernameFromId(letter.user)}</td>
+        <td>{nameShown}</td>
         <td>{letter.title}</td>
         <td>{letter.category}</td>
         <td className="d-flex flex-row gap-1">
             <button className="btn btn-sm btn-outline-primary" onClick={handleView}>
             <i className="bi bi-envelope-open"></i> View
             </button>
-            <button className="btn btn-sm btn-outline-warning" onClick={handleEdit}>
-            <i className="bi bi-pencil-square"></i> Edit
-            </button>
+            {editButtonShown}
         </td>
         </tr>
     );

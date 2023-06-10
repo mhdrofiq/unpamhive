@@ -1,10 +1,13 @@
-import axios from "axios";
+// import axios from "axios";
+import axios from '../../api/axios'
+
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { CATEGORIES } from "../../config/categories";
 import { useNavigate, Link } from "react-router-dom";
 
 const EditSubmission = () => {
+
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -33,15 +36,15 @@ const EditSubmission = () => {
   }
 
   useEffect(() => {
-    axios.get(`http://localhost:3500/users`).then((res) => {
+    axios.get(`/users`).then((res) => {
       setAllUsers(res.data);
     });
 
-    axios.get(`http://localhost:3500/users`).then((res) => {
+    axios.get(`/users`).then((res) => {
       setStaffUsers(res.data.filter((user) => user.role === "Staff"));
     });
 
-    axios.get(`http://localhost:3500/letters`).then((res) => {
+    axios.get(`/letters`).then((res) => {
       const letter = res.data.filter((letter) => letter._id === id);
       setUser(letter[0].user);
       setRecipient(letter[0].recipient);
@@ -54,7 +57,7 @@ const EditSubmission = () => {
 
   useEffect(() => {
     axios
-    .get(`http://localhost:3500/letters/download/${id}`, {
+    .get(`/letters/download/${id}`, {
       responseType: "blob",
     })
     .then((res) => {
@@ -65,7 +68,6 @@ const EditSubmission = () => {
     });
   }, [filename])
 
-  const onUserChanged = (e) => setUser(e.target.value);
   const onRecipientChanged = (e) => setRecipient(e.target.value);
   const onCategoryChanged = (e) => setCategory(e.target.value);
   const onTitleChanged = (e) => setTitle(e.target.value);
@@ -85,7 +87,7 @@ const EditSubmission = () => {
       formData.append("letterStatus", 'Open');
       formData.append("rejectMessage", '');
       formData.append("file", file);
-      const res = await axios.patch("http://localhost:3500/letters", formData);
+      const res = await axios.patch("/letters", formData);
       console.log(res.data);
       //this.props.history.push("/letters");
       setUser("");
@@ -105,7 +107,7 @@ const EditSubmission = () => {
     try {
       // const formData = new FormData();
       // formData.append("id", id);
-      const res = await axios.delete("http://localhost:3500/letters", {
+      const res = await axios.delete("/letters", {
         data: { id: id },
       });
       console.log(res.data);
@@ -114,14 +116,6 @@ const EditSubmission = () => {
     }
     navigate("/dash/submissions");
   };
-
-  const userOptions = allUsers.map((user) => {
-    return (
-      <option key={user._id} value={user._id}>
-        {user.username}
-      </option>
-    );
-  });
 
   const staffOptions = staffusers.map((user) => {
     return (
@@ -205,21 +199,8 @@ const EditSubmission = () => {
           onSubmit={onSubmit}
           encType="multipart/form-data"
         >
-          <label className="form-label text-secondary" htmlFor="username">
-            Sender
-          </label>
-          <select
-            id="username"
-            name="username"
-            className="form-select"
-            value={getUsernameFromId(user)}
-            onChange={onUserChanged}
-            required
-          >
-            {userOptions}
-          </select>
 
-          <label className="form-label mt-3 text-secondary" htmlFor="recipient">
+          <label className="form-label text-secondary" htmlFor="recipient">
             Recipient
           </label>
           <select
@@ -287,7 +268,7 @@ const EditSubmission = () => {
           </div>
 
           <label className="form-label mt-3 text-secondary" htmlFor="file">
-            Upload a a new file to replace the existing file
+            Upload a a new file to replace the existing file (optional)
           </label>
           <input
             className="form-control"

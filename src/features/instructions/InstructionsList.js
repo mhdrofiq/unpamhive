@@ -1,30 +1,58 @@
-import axios from "axios";
+// import axios from "axios";
+import axios from '../../api/axios'
+import InstructionsListRows from "./InstructionsListRows";
+import useAuth from '../../hooks/useAuth';
+
 import { useState, useEffect } from "react";
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import { Link } from "react-router-dom";
-import InstructionsListRows from "./InstructionsListRows";
 
 const InstructionsList = () => {
-  // const [allLetters, setAllLetters] = useState([])
+
   const [RegularLetters, setRegularLetters] = useState([]);
   const [users, setUsers] = useState([]);
+  const { auth } = useAuth();
 
   useEffect(() => {
-    axios.get(`http://localhost:3500/letters`).then((res) => {
+    axios.get(`/letters`).then((res) => {
       setRegularLetters(
         res.data.filter((letter) => letter.letterType === "Instruction")
       );
     });
-    axios.get(`http://localhost:3500/users`).then((res) => {
+    axios.get(`/users`).then((res) => {
       setUsers(res.data);
     });
   }, []);
 
-  //TODO: divide table data into inbound and outbound letters here
+  let inboundInstructions = RegularLetters.filter((letter) => letter.recipient === auth?.userId)
 
-  const tableData = RegularLetters.map((letter) => {
-    return <InstructionsListRows letter={letter} users={users} key={letter._id} />;
-  }).reverse()
+  let outboundInstructions = RegularLetters.filter((letter) => letter.user === auth?.userId)
+
+  let inboundTable = null;
+  let outboundTable = null;
+  let emptyMsgIn = null;
+  let emptyMsgOut = null;
+
+  if(inboundInstructions.length !== 0) {
+    inboundTable = inboundInstructions.map((letter) => {
+      return <InstructionsListRows letter={letter} users={users} type={0} key={letter._id} />; //0 for inbound letters
+    }).reverse()
+  } else {
+    emptyMsgIn = <div className="ps-2 text-secondary">
+      <p>You haven't recieved any instructions yet.</p>
+      </div>
+  }
+
+ 
+  if(outboundInstructions.length !== 0) {
+    outboundTable = outboundInstructions.map((letter) => {
+      return <InstructionsListRows letter={letter} users={users} type={1} key={letter._id} />; //1 for outbound letters
+    }).reverse()
+  } else {
+    emptyMsgOut = <div className="ps-2 text-secondary">
+      <p>You haven't issued any instructions yet.</p>
+      </div>
+  }
 
   return (
     <div className="p-3 rounded bg-white shadow-sm">
@@ -36,7 +64,7 @@ const InstructionsList = () => {
       <div className="d-flex mt-4">
         <h4 className="mono-text">List of Instructions</h4>
         <Link className="ms-auto btn btn-primary" to="/dash/instructions/new">
-        <i class="bi bi-envelope-plus"></i> Issue a new instruction
+        <i className="bi bi-envelope-plus"></i> Issue a new instruction
         </Link>
       </div>
         
@@ -70,11 +98,38 @@ const InstructionsList = () => {
                 </th>
               </tr>
             </thead>
-            <tbody>{tableData}</tbody>
+            <tbody>{inboundTable}</tbody>
           </table>
+          {emptyMsgIn}
         </TabPanel>
+
         <TabPanel>
-          <h3>outbound content here</h3>
+          <table className="table table-sm table-bordered table-hover table-fixed mt-2">
+            <thead className="table-thead">
+              <tr>
+                <th scope="col" className="table-th" style={{ width: "10%" }}>
+                  Date Issued
+                </th>
+                <th scope="col" className="table-th" style={{ width: "20%" }}>
+                  Issued To
+                </th>
+                <th scope="col" className="table-th" style={{ width: "40%" }}>
+                  Title
+                </th>
+                <th scope="col" className="table-th" style={{ width: "10%" }}>
+                  Starting Date
+                </th>
+                <th scope="col" className="table-th" style={{ width: "10%" }}>
+                  Ending Date
+                </th>
+                <th scope="col" className="table-th" style={{ width: "10%" }}>
+                  Controls
+                </th>
+              </tr>
+            </thead>
+            <tbody>{outboundTable}</tbody>
+          </table>
+          {emptyMsgOut}
         </TabPanel>
       </Tabs>
     </div>

@@ -1,15 +1,22 @@
-import axios from "axios";
+// import axios from "axios";
+import axios from '../../api/axios'
+import addSign from "../../img/addsign.png";
+import useAuth from "../../hooks/useAuth";
+
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Worker, Viewer } from "@react-pdf-viewer/core";
 import { PDFDocument } from "pdf-lib";
-import addSign from "../../img/addsign.png";
+
 import "@react-pdf-viewer/core/lib/styles/index.css";
 
 const ViewSubmission = () => {
+
   const { id } = useParams();
   const navigate = useNavigate();
+  const { auth } = useAuth();
+  const isStaff = auth?.role === 'Staff'
 
   const [users, setUsers] = useState([]);
   const [senderId, setSenderId] = useState("");
@@ -41,10 +48,10 @@ const ViewSubmission = () => {
   }
 
   useEffect(() => {
-    axios.get(`http://localhost:3500/users`).then((res) => {
+    axios.get(`/users`).then((res) => {
       setUsers(res.data);
     });
-    axios.get(`http://localhost:3500/letters`).then((res) => {
+    axios.get(`/letters`).then((res) => {
       //setTargetLetter(res.data.filter((letter) => letter._id === id))
       const letter = res.data.filter((letter) => letter._id === id);
       //console.log(letter[0].title)
@@ -59,8 +66,7 @@ const ViewSubmission = () => {
       setFilename(getFilename(letter[0].file));
       setRejectMessage(letter[0].rejectMessage);
     });
-    axios
-      .get(`http://localhost:3500/letters/download/${id}`, {
+    axios.get(`/letters/download/${id}`, {
         responseType: "blob",
       })
       .then((res) => {
@@ -71,8 +77,7 @@ const ViewSubmission = () => {
     //TODO: change the uid in the url to the current user's id
       //peter: 64356b831b9b8adebda34eea
       //rofiq: 6451fdc135e7ffbbe962af29
-    axios
-      .get(`http://localhost:3500/signature/64356b831b9b8adebda34eea`, {
+    axios.get(`/signature/${auth?.userId}`, {
         responseType: "blob",
       })
       .then((res) => {
@@ -85,8 +90,7 @@ const ViewSubmission = () => {
   }, []);
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:3500/letters/download/${id}`, {
+    axios.get(`/letters/download/${id}`, {
         responseType: "blob",
       })
       .then((res) => {
@@ -117,7 +121,7 @@ const ViewSubmission = () => {
       formData.append("rejectMessage", rejectMessage);
       formData.append("file", file);
 
-      const res = await axios.patch("http://localhost:3500/letters", formData);
+      const res = await axios.patch("/letters", formData);
 
       console.log(res.data);
       setSenderId("");
@@ -135,12 +139,14 @@ const ViewSubmission = () => {
 
   const onLetterApprove = async (e) => {
     e.preventDefault();
+    //TODO: update the base url after deployment
     const existingPdfBytes = await fetch(
       `http://localhost:3500/letters/download/${id}`
     ).then((res) => res.arrayBuffer());
 
+      //TODO: update the base url after deployment
     const pngImageBytes = await fetch(
-      "http://localhost:3500/signature/64356b831b9b8adebda34eea"
+      `http://localhost:3500/signature/${auth?.userId}`
     ).then((res) => res.arrayBuffer());
     //console.log(pngImageBytes)
 
@@ -183,7 +189,7 @@ const ViewSubmission = () => {
       formData.append("rejectMessage", rejectMessage);
       formData.append("file", newfile);
 
-      const res = await axios.patch("http://localhost:3500/letters", formData);
+      const res = await axios.patch("/letters", formData);
 
       console.log(res.data);
       setSenderId("");
@@ -259,7 +265,7 @@ const ViewSubmission = () => {
   }
 
   let buttonCollection;
-  if (letterStatus === "Open") {
+  if (letterStatus === "Open" && isStaff ) {
     buttonCollection = (
       <>
         <button
@@ -279,26 +285,7 @@ const ViewSubmission = () => {
       </>
     );
   } else {
-    buttonCollection = (
-      <>
-        <button
-          className="btn btn-sm btn-success"
-          data-bs-toggle="modal"
-          data-bs-target="#approveModal"
-          disabled
-        >
-          <i className="bi bi-vector-pen"></i> Approve and Sign
-        </button>
-        <button
-          className="btn btn-sm btn-danger"
-          data-bs-toggle="modal"
-          data-bs-target="#rejectModal"
-          disabled
-        >
-          <i className="bi bi-x-lg"></i> Reject Submission
-        </button>
-      </>
-    );
+    buttonCollection = null
   }
 
   let modalFooter;
@@ -508,6 +495,13 @@ const ViewSubmission = () => {
               <h6>Sender</h6>
               <span className="text-secondary">
                 {getUsernameFromId(senderId)}
+              </span>
+            </div>
+
+            <div className="mt-4">
+              <h6>Recipient</h6>
+              <span className="text-secondary">
+                {getUsernameFromId(recipient)}
               </span>
             </div>
 

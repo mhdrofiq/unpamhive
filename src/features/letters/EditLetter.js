@@ -1,4 +1,6 @@
-import axios from "axios";
+// import axios from 'axios'
+import axios from '../../api/axios'
+
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { CATEGORIES } from "../../config/categories";
@@ -34,15 +36,15 @@ const EditLetter = () => {
   }
 
   useEffect(() => {
-    axios.get(`http://localhost:3500/users`).then((res) => {
+    axios.get(`/users`).then((res) => {
       setAllUsers(res.data);
     });
 
-    axios.get(`http://localhost:3500/users`).then((res) => {
+    axios.get(`/users`).then((res) => {
       setStaffUsers(res.data.filter((user) => user.role === "Staff"));
     });
 
-    axios.get(`http://localhost:3500/letters`).then((res) => {
+    axios.get(`/letters`).then((res) => {
       const letter = res.data.filter((letter) => letter._id === id);
       setUser(letter[0].user);
       setRecipient(letter[0].recipient);
@@ -56,7 +58,7 @@ const EditLetter = () => {
 
   useEffect(() => {
     axios
-    .get(`http://localhost:3500/letters/download/${id}`, {
+    .get(`/letters/download/${id}`, {
       responseType: "blob",
     })
     .then((res) => {
@@ -91,7 +93,7 @@ const EditLetter = () => {
       formData.append("description", description);
       formData.append("file", file);
 
-      const res = await axios.patch("http://localhost:3500/letters", formData);
+      const res = await axios.patch("/letters", formData);
       
       console.log(res.data);
       setUser("");
@@ -112,7 +114,7 @@ const EditLetter = () => {
     try {
       // const formData = new FormData();
       // formData.append("id", id);
-      const res = await axios.delete("http://localhost:3500/letters", {
+      const res = await axios.delete("/letters", {
         data: { id: id },
       });
       console.log(res.data);
@@ -308,7 +310,7 @@ const EditLetter = () => {
           </div>
 
           <label className="form-label mt-3 text-secondary" htmlFor="file">
-            Upload a a new file to replace the existing file
+            Upload a a new file to replace the existing file (optional)
           </label>
           <input
             className="form-control"

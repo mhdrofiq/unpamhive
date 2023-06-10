@@ -1,10 +1,11 @@
-import axios from "axios";
+// import axios from "axios";
+import axios from '../../api/axios'
+
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Worker, Viewer } from "@react-pdf-viewer/core";
-//import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
-//import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+
 import "@react-pdf-viewer/core/lib/styles/index.css";
 
 const ViewInstruction = () => {
@@ -12,6 +13,7 @@ const ViewInstruction = () => {
 
     const [users, setUsers] = useState([]);
     const [senderId, setSenderId] = useState("");
+    const [recipientId, setRecipientId] = useState("");
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [letterNumber, setLetterNumber] = useState("");
@@ -27,20 +29,20 @@ const ViewInstruction = () => {
         for (let i = 0; i < users.length; i++) {
             if (users[i]._id === targetId) {
                 senderName = users[i].username;
+                break;
             }
         }
         return senderName;
     }
 
     useEffect(() => {
-        axios.get(`http://localhost:3500/users`).then((res) => {
+        axios.get(`/users`).then((res) => {
             setUsers(res.data);
         });
-        axios.get(`http://localhost:3500/letters`).then((res) => {
-            //setTargetLetter(res.data.filter((letter) => letter._id === id))
+        axios.get(`/letters`).then((res) => {
             const letter = res.data.filter((letter) => letter._id === id);
-            //console.log(letter[0].title)
             setSenderId(letter[0].user);
+            setRecipientId(letter[0].recipient);
             setTitle(letter[0].title);
             setDescription(letter[0].description);
             setLetterNumber(letter[0].letterNumber);
@@ -49,8 +51,7 @@ const ViewInstruction = () => {
             setFile(letter[0].file);
             setCreatedDate(letter[0].createdAt);
         });
-        axios
-            .get(`http://localhost:3500/letters/download/${id}`, {
+        axios.get(`/letters/download/${id}`, {
                 responseType: "blob",
             })
             .then((res) => {
@@ -59,23 +60,6 @@ const ViewInstruction = () => {
                 setPdfUrl(pdfurl);
             });
     }, []);
-
-    // const downloadFile = async (ID) => {
-    //     try {
-    //       const res = await axios.get(
-    //         `http://localhost:3500/letters/download/${ID}`,
-    //         { responseType: "blob" }
-    //       );
-    //       const blob = new Blob([res.data], { type: res.data.type });
-    //       const link = document.createElement("a");
-    //       link.href = window.URL.createObjectURL(blob);
-    //       link.download = "dlass-letter-download.pdf";
-    //       //link.download = res.headers["content-disposition"].split("filename=")[1];
-    //       link.click();
-    //     } catch (error) {
-    //       console.log(error);
-    //     }
-    // }
 
     function downloadFile() {
         const link = document.createElement("a");
@@ -140,34 +124,19 @@ const ViewInstruction = () => {
                 <Link 
                     className='btn btn-sm btn-secondary me-5' 
                     to="/dash/instructions">
-                    <i class="bi bi-arrow-left"></i> Instructions List
+                    <i className="bi bi-arrow-left"></i> Instructions List
                 </Link>
 
                 <button 
                     className="btn btn-sm btn-primary"
                     onClick={downloadFile}>
-                    <i class="bi bi-file-earmark-arrow-down"></i> Download Instruction
+                    <i className="bi bi-file-earmark-arrow-down"></i> Download Instruction
                 </button>
                 <button
                     className='btn btn-sm btn-primary' 
                     onClick={togglePreview}>
-                    <i class="bi bi-file-pdf"></i> Toggle Preview
+                    <i className="bi bi-file-pdf"></i> Toggle Preview
                 </button>
-                {/* <button
-                    className='btn btn-sm btn-success'
-                    disabled>
-                    <i class="bi bi-vector-pen"></i> Approve and Sign
-                </button>
-                <button
-                    className='btn btn-sm btn-danger'
-                    disabled>
-                    <i class="bi bi-x-lg"></i> Reject Submission
-                </button>
-                <button
-                    className="btn btn-sm btn-danger"
-                    title="Delete" disabled>
-                    <i class="bi bi-trash"></i> Delete Letter
-                </button> */}
             </div>
 
             <div className="d-flex mt-3 gap-2">
@@ -195,6 +164,13 @@ const ViewInstruction = () => {
                     </div>
 
                     <div className="mt-4">
+                        <h6>Recipient</h6>
+                        <span className="text-secondary">
+                            {getUsernameFromId(recipientId)}
+                        </span>
+                    </div>
+
+                    <div className="mt-4">
                         <h6>Description</h6>
                         <span className="text-secondary">{description}</span>
                     </div>
@@ -218,10 +194,10 @@ const ViewInstruction = () => {
                 </div>
 
                 <div className="card w-75">
-                    <div class="card-header text-secondary">
+                    <div className="card-header text-secondary">
                         Letter Preview Pane
                     </div>
-                    <div class="card-body">
+                    <div className="card-body">
                     {previewState ? previewBlock() : <i className="text-secondary">Preview Not Toggled</i>}
                     </div>
                 </div>

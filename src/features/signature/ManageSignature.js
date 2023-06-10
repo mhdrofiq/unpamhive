@@ -1,22 +1,23 @@
-import axios from "axios";
+// import axios from "axios";
+import axios from '../../api/axios'
+import useAuth from "../../hooks/useAuth";
+
 import { useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import picture from '../../img/sign3.png'
-import {Buffer} from 'buffer';
 
 const ManageSignature = () => {
 
     const navigate = useNavigate();
+    const { auth } = useAuth();
 
     const [file, setFile] = useState(null);
     const [fileUrl, setFileUrl] = useState(null);
-    const [userId, setUserId] = useState('64356b831b9b8adebda34eea');   //set to Peter for now - need to change to logged in user
-    const [togglePreview, setTogglePreview] = useState(false);
+    const [userId, setUserId] = useState(auth?.userId);
     const [buttonAccess, setButtonAccess] = useState(false);
 
     useEffect(() => {
         axios
-          .get(`http://localhost:3500/signature/64356b831b9b8adebda34eea`, {
+          .get(`/signature/${userId}`, {
             responseType: "blob",
         })
           .then((res) => {
@@ -39,7 +40,7 @@ const ManageSignature = () => {
           const formData = new FormData();
           formData.append("user", userId);
           formData.append("file", file);
-          const res = await axios.post("http://localhost:3500/signature", formData);
+          const res = await axios.post("/signature", formData);
           console.log(res.data);
           setUserId("");
           setFile("");
@@ -52,7 +53,7 @@ const ManageSignature = () => {
     const onDelete = async (e) => {
         e.preventDefault();
         try {
-          const res = await axios.delete("http://localhost:3500/signature", {
+          const res = await axios.delete("/signature", {
             data: { id: userId },
           });
           console.log(res.data);
@@ -122,7 +123,7 @@ const ManageSignature = () => {
                                 <div className="modal-body">
                                     <div className="card text-bg-light d-flex flex-row gap-2 p-3 text-secondary">
                                         <i className="bi bi-info-circle text-secondary"></i>
-                                        Please upload an image of your signature. It must be a PNG file with a transparent background. The file must not be lager than 16MB.
+                                        Please upload an image of your signature. It must be a PNG file with a transparent background. The file must not be larger than 16MB.
                                     </div>
                   
                                         <input 

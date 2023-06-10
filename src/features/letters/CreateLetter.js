@@ -1,31 +1,30 @@
-import axios from "axios";
+// import axios from 'axios'
+import axios from '../../api/axios'
+import useAuth from '../../hooks/useAuth';
 
 import { useState, useEffect } from "react";
 import { CATEGORIES } from "../../config/categories";
 import { useNavigate, Link } from "react-router-dom";
 
 const CreateLetter = () => {
+
+  const navigate = useNavigate();
+  const { auth } = useAuth();
+
   const [staffusers, setStaffUsers] = useState([]);
-  const [allUsers, setAllUsers] = useState([]);
-  const [user, setUser] = useState("");
-  const [recipient, setRecipient] = useState("");
-  const [category, setCategory] = useState(CATEGORIES[0]);
+  const [user, setUser] = useState(auth?.userId);
+  const [recipient, setRecipient] = useState('');
+  const [category, setCategory] = useState(Object.values(CATEGORIES)[0]);
   const [title, setTitle] = useState("");
   const [letterNumber, setLetterNumber] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState("");
 
-  const navigate = useNavigate();
-
   useEffect(() => {
-    axios.get(`http://localhost:3500/users`).then((res) => {
-      setAllUsers(res.data);
-      setUser(res.data[0]._id); // set default sender id
-    });
-
-    axios.get(`http://localhost:3500/users`).then((res) => {
-      setStaffUsers(res.data.filter((user) => user.role === "Staff"));
-      setRecipient(res.data[0]._id); // set default recipient id
+    axios.get(`/users`).then((res) => {
+      const fileteredUsers = res.data.filter((user) => (user.role === "Staff") && (user._id !== auth?.userId))
+      setStaffUsers(fileteredUsers);
+      setRecipient(fileteredUsers[0]._id)
     });
   }, []);
 
@@ -49,7 +48,8 @@ const CreateLetter = () => {
       formData.append("letterType", "Letter");
       formData.append("description", description);
       formData.append("file", file);
-      const res = await axios.post("http://localhost:3500/letters", formData);
+      console.log('file: ', file);
+      const res = await axios.post("/letters", formData);
       console.log(res.data);
       //this.props.history.push("/letters");
       setUser("");
@@ -65,7 +65,9 @@ const CreateLetter = () => {
     }
   };
 
-  const userOptions = allUsers.map((user) => {
+  const staffWithoutCurrUser = staffusers.filter((user) => user._id !== auth?.userId);
+
+  const staffOptions = staffWithoutCurrUser.map((user) => {
     return (
       <option key={user._id} value={user._id}>
         {user.username}
@@ -73,17 +75,9 @@ const CreateLetter = () => {
     );
   });
 
-  const staffOptions = staffusers.map((user) => {
+  const categoryOptions = Object.values(CATEGORIES).map((type, i) => {
     return (
-      <option key={user._id} value={user._id}>
-        {user.username}
-      </option>
-    );
-  });
-
-  const categoryOptions = Object.values(CATEGORIES).map((type) => {
-    return (
-      <option key={type} value={type}>
+      <option key={i} value={type}>
         {type}
       </option>
     );
@@ -106,7 +100,7 @@ const CreateLetter = () => {
 
       <div className="d-flex gap-1">
         <Link className="btn btn-sm btn-secondary me-5" to="/dash/letters">
-          <i class="bi bi-arrow-left"></i> Letter Archive
+          <i className="bi bi-arrow-left"></i> Letter Archive
         </Link>
       </div>
 
@@ -116,28 +110,15 @@ const CreateLetter = () => {
           onSubmit={onSubmit}
           encType="multipart/form-data"
         >
-          
-          <label className="form-label text-secondary" htmlFor="username">
-            Sender
-          </label>
-          <select
-            id="username"
-            name="username"
-            className="form-select"
-            value={user}
-            onChange={onUserChanged}
-          >
-            {userOptions}
-          </select>
 
-          <label className="form-label mt-3 text-secondary" htmlFor="recipient">
+          <label className="form-label text-secondary" htmlFor="recipient">
             Recipient
           </label>
           <select
             id="recipient"
             name="recipient"
             className="form-select"
-            // value={category}
+            value={recipient}
             onChange={onRecipientChanged}
           >
             {staffOptions}
@@ -150,7 +131,7 @@ const CreateLetter = () => {
             id="category"
             name="category"
             className="form-select"
-            // value={category}
+            value={category}
             onChange={onCategoryChanged}
           >
             {categoryOptions}
@@ -165,7 +146,7 @@ const CreateLetter = () => {
             name="title"
             type="text"
             autoComplete="off"
-            // value={title}
+            value={title}
             onChange={onTitleChanged}
             required
           />
@@ -179,7 +160,7 @@ const CreateLetter = () => {
             name="number"
             type="text"
             autoComplete="off"
-            // value={letterNumber}
+            value={letterNumber}
             onChange={onLetterNumberChanged}
             required
           />
@@ -194,7 +175,7 @@ const CreateLetter = () => {
             className="form-control"
             id="description"
             name="description"
-            // value={description}
+            value={description}
             onChange={onDescriptionChanged}
             required
           />
@@ -208,6 +189,7 @@ const CreateLetter = () => {
             name="file"
             // ref={fileInputRef}
             onChange={onFileChanged}
+            required
           ></input>
 
           <div className="mt-4">

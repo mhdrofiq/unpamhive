@@ -1,10 +1,11 @@
-import axios from "axios";
+// import axios from "axios";
+import axios from "../../api/axios";
+
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Worker, Viewer } from "@react-pdf-viewer/core";
-//import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
-//import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+
 import "@react-pdf-viewer/core/lib/styles/index.css";
 
 const ViewLetter = () => {
@@ -12,6 +13,7 @@ const ViewLetter = () => {
 
     const [users, setUsers] = useState([]);
     const [senderId, setSenderId] = useState("");
+    const [recipientId, setRecipientId] = useState("");
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [letterNumber, setLetterNumber] = useState("");
@@ -32,14 +34,15 @@ const ViewLetter = () => {
     }
 
     useEffect(() => {
-        axios.get(`http://localhost:3500/users`).then((res) => {
+        axios.get(`/users`).then((res) => {
             setUsers(res.data);
         });
-        axios.get(`http://localhost:3500/letters`).then((res) => {
+        axios.get(`/letters`).then((res) => {
             //setTargetLetter(res.data.filter((letter) => letter._id === id))
             const letter = res.data.filter((letter) => letter._id === id);
             //console.log(letter[0].title)
             setSenderId(letter[0].user);
+            setRecipientId(letter[0].recipient);
             setTitle(letter[0].title);
             setDescription(letter[0].description);
             setLetterNumber(letter[0].letterNumber);
@@ -47,7 +50,7 @@ const ViewLetter = () => {
             setFile(letter[0].file);
             setCreatedDate(letter[0].createdAt);
         });
-        axios.get(`http://localhost:3500/letters/download/${id}`, {
+        axios.get(`/letters/download/${id}`, {
             responseType: "blob",
         }).then((res) => {
             const blob = new Blob([res.data], { type: res.data.type });
@@ -155,12 +158,19 @@ const ViewLetter = () => {
                     </div>
 
                     <div className="mt-4">
+                        <h6>Recipient</h6>
+                        <span className="text-secondary">
+                            {getUsernameFromId(recipientId)}
+                        </span>
+                    </div>
+
+                    <div className="mt-4">
                         <h6>Description</h6>
                         <span className="text-secondary">{description}</span>
                     </div>
 
                     <div className="mt-4">
-                        <h6>Submitted at</h6>
+                        <h6>Sent at</h6>
                         <span className="text-secondary">{created}</span>
                     </div>
                     </div>

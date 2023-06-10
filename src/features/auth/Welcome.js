@@ -1,29 +1,19 @@
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
+import useAuth from '../../hooks/useAuth';
 
 const Welcome = () => {
-  const date = new Date();
+
+  const { auth } = useAuth();
 
   const content = (
     <div className="p-3 rounded bg-white shadow-sm">
-      <h2 className="mono-text mb-4">Welcome StaffDev!</h2>
+      <h2 className="mono-text mb-4">Welcome {auth.username}</h2>
 
       <div className="d-flex gap-2">
 
         <div className="card" style={{ width: '20%' }}>
             <div className="card-header text-secondary">Your Notifications (TBA)</div>
             <div className="card-body">
-                <Link className="btn btn-sm btn-warning" to="/dash/letters">Unread Letters <span className="badge text-bg-danger">4</span></Link>
-
-                <Link className="btn btn-sm btn-warning mt-1" to="/dash/submissions">Open Student Submissions <span className="badge text-bg-danger">2</span></Link>
-
-                <Link className="btn btn-sm btn-warning mt-1" to="/dash/instructions">Ongoing Instructions <span className="badge text-bg-danger">1</span></Link>
-
-                <p><Link to="/dash/letters/new">Create letter</Link></p>
-                <p><Link to="/dash/submissions/new">Create submission</Link></p>
-                <p><Link to="/dash/instructions/new">Create instruction</Link></p>
-                <p><Link to="/dash/users">View users list</Link></p>
-                <p><Link to="/dash/submissions/addImage">add image</Link></p>
-                <p><Link to="/dash/signature">manage signature</Link></p>
             </div>
         </div>
 
