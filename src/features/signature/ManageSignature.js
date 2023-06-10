@@ -1,12 +1,14 @@
 // import axios from "axios";
 import axios from '../../api/axios'
 import useAuth from "../../hooks/useAuth";
+import useTitle from "../../hooks/useTitle";
 
 import { useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 const ManageSignature = () => {
 
+    useTitle("Manage Signature");
     const navigate = useNavigate();
     const { auth } = useAuth();
 

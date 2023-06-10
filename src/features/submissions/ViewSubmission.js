@@ -2,6 +2,7 @@
 import axios from '../../api/axios'
 import addSign from "../../img/addsign.png";
 import useAuth from "../../hooks/useAuth";
+import useTitle from "../../hooks/useTitle";
 
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -13,6 +14,7 @@ import "@react-pdf-viewer/core/lib/styles/index.css";
 
 const ViewSubmission = () => {
 
+  useTitle("View Submission");
   const { id } = useParams();
   const navigate = useNavigate();
   const { auth } = useAuth();
@@ -74,9 +76,6 @@ const ViewSubmission = () => {
         const pdfurl = window.URL.createObjectURL(blob);
         setPdfUrl(pdfurl);
       });
-    //TODO: change the uid in the url to the current user's id
-      //peter: 64356b831b9b8adebda34eea
-      //rofiq: 6451fdc135e7ffbbe962af29
     axios.get(`/signature/${auth?.userId}`, {
         responseType: "blob",
       })

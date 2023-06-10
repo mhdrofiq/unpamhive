@@ -21,11 +21,15 @@ import EditSubmission from "./features/submissions/EditSubmission";
 import EditInstruction from "./features/instructions/EditInstruction";
 import ManageSignature from "./features/signature/ManageSignature";
 import Unauthorized from "./components/Unauthorized";
+import EditUser from "./features/users/EditUser";
 
 import PersistLogin from "./features/auth/PersistLogin";
 import RequireAuth from "./features/auth/RequireAuth"; //protects routes that require auth
+import useTitle from "./hooks/useTitle";
 
 function App() {
+  useTitle('Unpam Hive');
+
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
@@ -49,6 +53,10 @@ function App() {
             <Route path="view/:id" element={<ViewSubmission />} />
             <Route path="edit/:id" element={<EditSubmission />} />
           </Route>
+
+          <Route path="profile">
+              <Route index element={<EditUser />} />
+            </Route>
           
           {/* protected staff routes */}
           <Route element={<RequireAuth allowedRoles={['Staff']}/>}>
@@ -70,7 +78,6 @@ function App() {
             <Route path="signature">
               <Route index element={<ManageSignature />} />
             </Route>
-
             
             <Route path="userslist">
               <Route index element={<UsersList />} />

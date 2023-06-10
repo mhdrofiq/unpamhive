@@ -1,6 +1,9 @@
 import { useNavigate } from "react-router-dom"
+import useTitle from "../hooks/useTitle"
 
 const Unauthorized = () => {
+    
+    useTitle('Hive Unauthorized Access');
     const navigate = useNavigate();
 
     const goBack = () => navigate(-1);

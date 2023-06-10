@@ -1,6 +1,7 @@
 // import axios from "axios";
 import axios from '../../api/axios'
 import DatePicker from "react-datepicker";
+import useTitle from '../../hooks/useTitle';
 
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -10,6 +11,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 const EditInstruction = () => {
 
+  useTitle("Edit Instruction");
   const { id } = useParams(); //this letter's id
   const navigate = useNavigate();
 

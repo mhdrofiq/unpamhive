@@ -1,18 +1,20 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ROLES } from "../../config/roles";
 import { DEPARTMENTS } from "../../config/departments";
 import { STUDENT_POSITIONS } from "../../config/positions";
 import { STAFF_POSITIONS } from "../../config/positions";
 
-import axios from "axios";
+import axios from '../../api/axios';
+import useTitle from "../../hooks/useTitle";
 
 const USER_REGEX = /^[A-z]{3,30}$/;
 const PWD_REGEX = /^[A-z0-9!@#$%]{4,12}$/;
 const EMAIL_REGEX = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
 const Register = () => {
-  const navigate = useNavigate();
+
+  useTitle('Unpam Hive Register');
   const userRef = useRef();
   const errRef = useRef();
 
@@ -77,7 +79,7 @@ const Register = () => {
     e.preventDefault();
     //console.log(username, email, password, matchPwd, role, department, position);
     try{
-      const res = await axios.post("http://localhost:3500/auth/register", JSON.stringify({ username, password, email, role, department, position}),
+      const res = await axios.post("/auth/register", JSON.stringify({ username, password, email, role, department, position}),
       {
         headers: { 'Content-Type': 'application/json' },
         withCredentials: true
@@ -98,30 +100,6 @@ const Register = () => {
       }
     }
   };
-
-  // THIS IS AN EXAMPLE OF HANDLING FOR MULTIPLE SELECT
-  // const onDepartmentChanged = e => {
-  //     const values = Array.from(  //create an array from
-  //         e.target.selectedOptions, //the event gives us HTMLCollection
-  //         (option) => option.value    //get the values from the array
-  //     )
-  //     setDepartment(values)
-  // }
-
-  //this array means: if all of these are true (by using the boolean)
-  // const canSave = [role, department, position, validUsername, validEmail, validPassword ].every(Boolean) && !isLoading
-
-  // const onSaveUserClicked = async (e) => {
-  //     e.preventDefault()
-  //     if (canSave) {  //check the canSave value
-  //         await register({ username, email, password, role, department, position }) //call mutation
-  //     }
-  // }
-
-  // const onSaveUserClicked = async (e) => {
-  //     e.preventDefault()
-  //     await register({ username, email, password, role, department, position }) //call mutation
-  // }
 
   //this is for the select options (dropdown)
   const roleOptions = Object.values(ROLES).map((role) => {

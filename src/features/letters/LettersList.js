@@ -2,6 +2,7 @@
 import axios from "../../api/axios";
 import LettersListRows from "./LettersListRows";
 import useAuth from '../../hooks/useAuth';
+import useTitle from "../../hooks/useTitle";
 
 import { useState, useEffect } from "react";
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
@@ -9,6 +10,7 @@ import { Link } from "react-router-dom";
 
 const LettersList = () => {
 
+  useTitle("Letter Archive");
   const [RegularLetters, setRegularLetters] = useState([]);
   const [users, setUsers] = useState([]);
   const { auth } = useAuth();

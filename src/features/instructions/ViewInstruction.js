@@ -1,5 +1,6 @@
 // import axios from "axios";
 import axios from '../../api/axios'
+import useTitle from '../../hooks/useTitle';
 
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -9,6 +10,8 @@ import { Worker, Viewer } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 
 const ViewInstruction = () => {
+
+    useTitle("View Instruction");
     const { id } = useParams();
 
     const [users, setUsers] = useState([]);

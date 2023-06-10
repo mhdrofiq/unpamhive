@@ -1,5 +1,6 @@
 // import axios from "axios";
 import axios from '../../api/axios'
+import useTitle from '../../hooks/useTitle';
 
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -8,6 +9,7 @@ import { useNavigate, Link } from "react-router-dom";
 
 const EditSubmission = () => {
 
+  useTitle("Edit Submission");
   const { id } = useParams();
   const navigate = useNavigate();
 

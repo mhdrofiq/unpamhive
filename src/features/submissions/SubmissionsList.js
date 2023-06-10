@@ -2,16 +2,19 @@
 import axios from '../../api/axios'
 import SubmissionsListRows from "./SubmissionsListRows";
 import useAuth from "../../hooks/useAuth";
+import useTitle from "../../hooks/useTitle";
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const SubmissionsList = () => {
 
-  const [RegularLetters, setRegularLetters] = useState([]);
-  const [users, setUsers] = useState([]);
+  useTitle("Submissions List");
   const { auth } = useAuth();
   const isStaff = auth?.role === 'Staff'
+
+  const [RegularLetters, setRegularLetters] = useState([]);
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     axios.get(`/letters`).then((res) => {

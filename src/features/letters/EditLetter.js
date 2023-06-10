@@ -1,5 +1,6 @@
 // import axios from 'axios'
 import axios from '../../api/axios'
+import useTitle from '../../hooks/useTitle';
 
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -7,6 +8,8 @@ import { CATEGORIES } from "../../config/categories";
 import { useNavigate, Link } from "react-router-dom";
 
 const EditLetter = () => {
+
+  useTitle("Edit Letter");
   const { id } = useParams();
   const navigate = useNavigate();
 

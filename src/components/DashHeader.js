@@ -26,6 +26,7 @@ const DashHeader = () => {
     const onLettersClicked = () => navigate('/dash/letters')
     const onInstructionsClicked = () => navigate('/dash/instructions')
     const onSignatureClicked = () => navigate('/dash/signature')
+    const onProfileClicked = () => navigate('/dash/profile')
     const onLogoutClicked = async () => {
         await logout();
         console.log('Logout success')
@@ -86,6 +87,10 @@ const DashHeader = () => {
         <a className='dropdown-item' href='#' onClick={onLogoutClicked}>Log out</a>
     )
 
+    const profileButton = (
+        <a className='dropdown-item' href='#' onClick={onProfileClicked}>Account Settings</a>
+    )
+
     const content = (
        
         <>
@@ -124,7 +129,7 @@ const DashHeader = () => {
                                 Settings
                             </a>
                             <ul className="dropdown-menu dropdown-menu-dark dropdown-menu-end">
-                                <li><a className="dropdown-item" href="#">Account settings</a></li>
+                                <li>{profileButton}</li>
                                 <li>{logoutButton}</li>
                             </ul>
                         </li>

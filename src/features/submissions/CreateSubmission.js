@@ -1,6 +1,7 @@
 // import axios from "axios";
 import axios from '../../api/axios'
 import useAuth from "../../hooks/useAuth";
+import useTitle from "../../hooks/useTitle";
 
 import { useState, useEffect } from "react";
 import { CATEGORIES } from "../../config/categories";
@@ -8,6 +9,7 @@ import { useNavigate, Link } from "react-router-dom";
 
 const CreateSubmission = () => {
 
+  useTitle("Create Submission");
   const navigate = useNavigate();
   const { auth } = useAuth();
   const isStaff = auth?.role === 'Staff'

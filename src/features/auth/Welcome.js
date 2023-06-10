@@ -1,8 +1,10 @@
 // import { Link } from "react-router-dom";
 import useAuth from '../../hooks/useAuth';
+import useTitle from '../../hooks/useTitle';
 
 const Welcome = () => {
 
+  useTitle('Hive Dashboard');
   const { auth } = useAuth();
 
   const content = (

@@ -2,6 +2,7 @@
 import axios from '../../api/axios'
 import InstructionsListRows from "./InstructionsListRows";
 import useAuth from '../../hooks/useAuth';
+import useTitle from "../../hooks/useTitle";
 
 import { useState, useEffect } from "react";
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
@@ -9,6 +10,7 @@ import { Link } from "react-router-dom";
 
 const InstructionsList = () => {
 
+  useTitle("Instruction Letters");
   const [RegularLetters, setRegularLetters] = useState([]);
   const [users, setUsers] = useState([]);
   const { auth } = useAuth();

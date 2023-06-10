@@ -1,9 +1,13 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+
 import useAuth from "../../hooks/useAuth";
 import axios from "../../api/axios";
+import useTitle from "../../hooks/useTitle";
 
 const Login = () => {
+
+  useTitle('Unpam Hive Login')
   const { setAuth, persist, setPersist } = useAuth();
   const navigate = useNavigate();
 

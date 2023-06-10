@@ -2,6 +2,7 @@
 import axios from '../../api/axios.js'
 import DatePicker from "react-datepicker";
 import useAuth from "../../hooks/useAuth";
+import useTitle from "../../hooks/useTitle";
 
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -10,6 +11,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 const CreateInstruction = () => {
 
+    useTitle("Create Instruction");
     const navigate = useNavigate()
     const { auth } = useAuth();
 
