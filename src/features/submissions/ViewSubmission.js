@@ -3,6 +3,7 @@ import axios from '../../api/axios'
 import addSign from "../../img/addsign.png";
 import useAuth from "../../hooks/useAuth";
 import useTitle from "../../hooks/useTitle";
+import packageJson from "../../../package.json";
 
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -19,6 +20,7 @@ const ViewSubmission = () => {
   const navigate = useNavigate();
   const { auth } = useAuth();
   const isStaff = auth?.role === 'Staff'
+  const pdfjsVersion = packageJson.dependencies['pdfjs-dist'];
 
   const [users, setUsers] = useState([]);
   const [senderId, setSenderId] = useState("");
@@ -219,7 +221,7 @@ const ViewSubmission = () => {
           height: "500px",
         }}
       >
-        <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+        <Worker workerUrl={`https://unpkg.com/pdfjs-dist@${pdfjsVersion}/build/pdf.worker.min.js`}>
           <Viewer fileUrl={pdfUrl} />
         </Worker>
       </div>
