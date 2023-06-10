@@ -140,12 +140,12 @@ const ViewSubmission = () => {
     e.preventDefault();
     //TODO: update the base url after deployment
     const existingPdfBytes = await fetch(
-      `http://localhost:3500/letters/download/${id}`
+      `https://unpamhive-api.onrender.com/letters/download/${id}`
     ).then((res) => res.arrayBuffer());
 
       //TODO: update the base url after deployment
     const pngImageBytes = await fetch(
-      `http://localhost:3500/signature/${auth?.userId}`
+      `https://unpamhive-api.onrender.com/signature/${auth?.userId}`
     ).then((res) => res.arrayBuffer());
     //console.log(pngImageBytes)
 
