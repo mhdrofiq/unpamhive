@@ -1,8 +1,5 @@
 
-## Development notes and reminders
+## Digital Letter Archive and Signing System for Pamulang Univeristy
 
-to enable authentication:
-- make jwt middleware
-- make the auth controller (login/register/etc)
-- link it to the auth routes
-- add app.use the route in server.js
+- Developed as bachelor's degree final year project at Universiti Teknologi Malaysia
+- Designed and built from 2022 until 2023
