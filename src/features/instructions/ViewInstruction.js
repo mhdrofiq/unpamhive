@@ -41,9 +41,11 @@ const ViewInstruction = () => {
     }
 
     useEffect(() => {
+
         axios.get(`/users`).then((res) => {
             setUsers(res.data);
         });
+
         axios.get(`/letters`).then((res) => {
             const letter = res.data.filter((letter) => letter._id === id);
             setSenderId(letter[0].user);
@@ -56,14 +58,21 @@ const ViewInstruction = () => {
             setFile(letter[0].file);
             setCreatedDate(letter[0].createdAt);
         });
-        axios.get(`/letters/download/${id}`, {
-                responseType: "blob",
-            })
-            .then((res) => {
-                const blob = new Blob([res.data], { type: res.data.type });
-                const pdfurl = window.URL.createObjectURL(blob);
-                setPdfUrl(pdfurl);
-            });
+
+        axios.get(`/letters/${id}`, {
+            responseType: "arraybuffer",
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/pdf'
+            }
+          })
+          .then((res) => {
+            //console.log(res.data)
+            const url = window.URL.createObjectURL(new Blob([res.data]));
+            //console.log(url);
+            setPdfUrl(url);
+          });
+          
     }, []);
 
     function downloadFile() {

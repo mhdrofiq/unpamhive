@@ -31,7 +31,6 @@ const ViewSubmission = () => {
   const [letterStatus, setLetterStatus] = useState("");
   const [createdDate, setCreatedDate] = useState("");
   const [file, setFile] = useState("");
-  const [filename, setFilename] = useState("");
   const [previewState, setPreviewState] = useState(false);
   const [pdfUrl, setPdfUrl] = useState([]);
   const [rejectMessage, setRejectMessage] = useState("");
@@ -47,14 +46,12 @@ const ViewSubmission = () => {
     return senderName;
   }
 
-  function getFilename(str) {
-    return str.replace("uploads\\", "");
-  }
-
   useEffect(() => {
+
     axios.get(`/users`).then((res) => {
       setUsers(res.data);
     });
+
     axios.get(`/letters`).then((res) => {
       //setTargetLetter(res.data.filter((letter) => letter._id === id))
       const letter = res.data.filter((letter) => letter._id === id);
@@ -67,41 +64,38 @@ const ViewSubmission = () => {
       setCategory(letter[0].category);
       setFile(letter[0].file);
       setCreatedDate(letter[0].createdAt);
-      setFilename(getFilename(letter[0].file));
       setRejectMessage(letter[0].rejectMessage);
     });
-    axios.get(`/letters/download/${id}`, {
-        responseType: "blob",
-      })
-      .then((res) => {
-        const blob = new Blob([res.data], { type: res.data.type });
-        const pdfurl = window.URL.createObjectURL(blob);
-        setPdfUrl(pdfurl);
-      });
-    axios.get(`/signature/${auth?.userId}`, {
-        responseType: "blob",
-      })
-      .then((res) => {
-        if (res.data.type === "image/png") {
-          setHasSignature(true);
-        } else {
-          setHasSignature(false);
-        }
-      });
-  }, []);
 
-  useEffect(() => {
-    axios.get(`/letters/download/${id}`, {
-        responseType: "blob",
-      })
-      .then((res) => {
-        const blob = new Blob([res.data], { type: res.data.type });
-        //console.log(filename)
-        const oldfile = new File([blob], filename, { type: "application/pdf" });
-        setFile(oldfile);
-        // console.log(file);
-      });
-  }, [filename]);
+    axios.get(`/letters/${id}`, {
+      responseType: "arraybuffer",
+      headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/pdf'
+      }
+    })
+    .then((res) => {
+      //console.log(res.data)
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      //console.log(url);
+      setPdfUrl(url);
+    });
+
+    axios.get(`/signature/${auth?.userId}`, {
+      responseType: "arraybuffer",
+      headers: {
+          'Content-Type': 'image/png',
+      }
+    })
+    .then((res) => {
+      if(res.data.maxByteLength > 33) {
+        setHasSignature(true)
+      }else{
+        setHasSignature(false)
+      }
+    });
+
+  }, []);
 
   const onRejectMessageChanged = (e) => {
     setRejectMessage(e.target.value);
@@ -120,7 +114,6 @@ const ViewSubmission = () => {
       formData.append("letterStatus", "Rejected");
       formData.append("description", description);
       formData.append("rejectMessage", rejectMessage);
-      formData.append("file", file);
 
       const res = await axios.patch("/letters", formData);
 
@@ -141,15 +134,28 @@ const ViewSubmission = () => {
   const onLetterApprove = async (e) => {
     e.preventDefault();
     //TODO: update the base url after deployment
+    // const existingPdfBytes = await axios(`/letters/${id}`, {
+    //   responseType: "arraybuffer"
+    // })
     const existingPdfBytes = await fetch(
-      `https://unpamhive-api.onrender.com/letters/download/${id}`
+      `http://localhost:3500/letters/${id}`
     ).then((res) => res.arrayBuffer());
+    // const existingPdfBytes = await fetch(
+    //   `https://unpamhive-api.onrender.com/letters/download/${id}`
+    // ).then((res) => res.arrayBuffer());
+    // console.log(existingPdfBytes)
 
-      //TODO: update the base url after deployment
+    //TODO: update the base url after deployment
+    // const pngImageBytes = await axios(`/signature/${auth?.userId}`, {
+    //   responseType: "arraybuffer"
+    // })
     const pngImageBytes = await fetch(
-      `https://unpamhive-api.onrender.com/signature/${auth?.userId}`
+      `http://localhost:3500/signature/${auth?.userId}`
     ).then((res) => res.arrayBuffer());
-    //console.log(pngImageBytes)
+    // const pngImageBytes = await fetch(
+    //   `https://unpamhive-api.onrender.com/signature/${auth?.userId}`
+    // ).then((res) => res.arrayBuffer());
+    // console.log(pngImageBytes)
 
     //load pdf file
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
@@ -168,9 +174,10 @@ const ViewSubmission = () => {
     });
 
     const pdfBytes = await pdfDoc.save();
+    // console.log(pdfBytes)
     const bytes = new Uint8Array(pdfBytes);
     const blob = new Blob([bytes], { type: "application/pdf" });
-    const newfile = new File([blob], filename, { type: "application/pdf" });
+    const newfile = new File([blob], 'signed-letter.pdf', { type: "application/pdf" });
     //console.log(newfile)
     //setFile(blob);
     // const url = URL.createObjectURL( blob );

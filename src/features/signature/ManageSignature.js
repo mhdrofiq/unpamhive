@@ -3,7 +3,7 @@ import axios from '../../api/axios'
 import useAuth from "../../hooks/useAuth";
 import useTitle from "../../hooks/useTitle";
 
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 const ManageSignature = () => {
@@ -18,20 +18,24 @@ const ManageSignature = () => {
     const [buttonAccess, setButtonAccess] = useState(false);
 
     useEffect(() => {
-        axios
-          .get(`/signature/${userId}`, {
-            responseType: "blob",
-        })
+
+        axios.get(`/signature/${userId}`, {
+            responseType: "arraybuffer",
+            headers: {
+                'Content-Type': 'image/png',
+            }
+          })
           .then((res) => {
-            if(res.data.type === "image/png") {
-                const url = window.URL.createObjectURL(res.data)
+            if(res.data.maxByteLength > 33) {
+                const url = window.URL.createObjectURL(new Blob([res.data]))
                 setFileUrl(url)
                 setButtonAccess(false)
             }else{
                 setFileUrl(null)
                 setButtonAccess(true)
-            }                
-          })
+            }
+          });
+
       }, [])
 
     const onFileChanged = (e) => setFile(e.target.files[0]);
@@ -148,7 +152,8 @@ const ManageSignature = () => {
                                     <button 
                                     type="button" 
                                     className="btn btn-success" data-bs-dismiss="modal"
-                                    onClick={onSubmit}>
+                                    onClick={onSubmit}
+                                    >
                                         Upload
                                     </button>
                                 </div>

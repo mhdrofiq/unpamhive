@@ -30,7 +30,6 @@ const CreateLetter = () => {
     });
   }, []);
 
-  const onUserChanged = (e) => setUser(e.target.value);
   const onRecipientChanged = (e) => setRecipient(e.target.value);
   const onCategoryChanged = (e) => setCategory(e.target.value);
   const onTitleChanged = (e) => setTitle(e.target.value);
@@ -50,9 +49,9 @@ const CreateLetter = () => {
       formData.append("letterType", "Letter");
       formData.append("description", description);
       formData.append("file", file);
-      console.log('file: ', file);
+      //console.log('file: ', file);
       const res = await axios.post("/letters", formData);
-      console.log(res.data);
+      console.log(res);
       //this.props.history.push("/letters");
       setUser("");
       setRecipient("");

@@ -1,6 +1,7 @@
 // import axios from 'axios'
-import axios from '../../api/axios'
-import useTitle from '../../hooks/useTitle';
+import axios from "../../api/axios";
+import useTitle from "../../hooks/useTitle";
+import useAuth from "../../hooks/useAuth";
 
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -8,10 +9,10 @@ import { CATEGORIES } from "../../config/categories";
 import { useNavigate, Link } from "react-router-dom";
 
 const EditLetter = () => {
-
   useTitle("Edit Letter");
   const { id } = useParams();
   const navigate = useNavigate();
+  const { auth } = useAuth();
 
   const [staffusers, setStaffUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
@@ -22,23 +23,10 @@ const EditLetter = () => {
   const [letterNumber, setLetterNumber] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState();
-  const [filename, setFilename] = useState('');
-
-  function getUsernameFromId(targetId) {
-    let senderName = null;
-    for (let i = 0; i < allUsers.length; i++) {
-      if (allUsers[i]._id === targetId) {
-        senderName = allUsers[i].username;
-      }
-    }
-    return senderName;
-  }
-
-  function getFilename(str){
-    return str.replace("uploads\\", "")
-  }
+  const [pdfUrl, setPdfUrl] = useState("");
 
   useEffect(() => {
+    
     axios.get(`/users`).then((res) => {
       setAllUsers(res.data);
     });
@@ -55,33 +43,32 @@ const EditLetter = () => {
       setDescription(letter[0].description);
       setLetterNumber(letter[0].letterNumber);
       setCategory(letter[0].category);
-      setFilename(getFilename(letter[0].file));
     });
+
+    axios.get(`/letters/${id}`, {
+        responseType: "arraybuffer",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/pdf",
+        },
+      })
+      .then((res) => {
+        //console.log(res.data)
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        // const oldfile = new File([res.data], title + ' pdf file', {type: 'application/pdf'})
+        // setFile(oldfile);
+        setPdfUrl(url);
+      });
+
   }, []);
 
-  useEffect(() => {
-    axios
-    .get(`/letters/download/${id}`, {
-      responseType: "blob",
-    })
-    .then((res) => {
-      const blob = new Blob([res.data], { type: res.data.type });
-      //console.log(filename)
-      const oldfile = new File([blob], filename, {type: 'application/pdf'})
-      setFile(oldfile);
-      // console.log(file);
-    });
-  }, [filename])
-
-  //console.log(file);
-
-  const onUserChanged = (e) => setUser(e.target.value);
   const onRecipientChanged = (e) => setRecipient(e.target.value);
   const onCategoryChanged = (e) => setCategory(e.target.value);
   const onTitleChanged = (e) => setTitle(e.target.value);
   const onLetterNumberChanged = (e) => setLetterNumber(e.target.value);
   const onDescriptionChanged = (e) => setDescription(e.target.value);
   const onFileChanged = (e) => setFile(e.target.files[0]);
+
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -94,10 +81,11 @@ const EditLetter = () => {
       formData.append("letterNumber", letterNumber);
       formData.append("letterType", "Letter");
       formData.append("description", description);
-      formData.append("file", file);
+      { file ?  formData.append("file", file) : console.log('retain existing file') }
+      // formData.append("file", file);
 
       const res = await axios.patch("/letters", formData);
-      
+
       console.log(res.data);
       setUser("");
       setRecipient("");
@@ -111,6 +99,15 @@ const EditLetter = () => {
     }
     navigate("/dash/letters");
   };
+
+  const downloadFile = (e) => {
+    e.preventDefault();
+    //console.log(file);
+    const link = document.createElement("a");
+    link.href = pdfUrl;
+    link.download = "dlass-letter-download.pdf";
+    link.click();
+  }
 
   const onDelete = async (e) => {
     e.preventDefault();
@@ -127,15 +124,9 @@ const EditLetter = () => {
     navigate("/dash/letters");
   };
 
-  const userOptions = allUsers.map((user) => {
-    return (
-      <option key={user._id} value={user._id}>
-        {user.username}
-      </option>
-    );
-  });
+  const staffWithoutCurrUser = staffusers.filter((user) => user._id !== auth?.userId);
 
-  const staffOptions = staffusers.map((user) => {
+  const staffOptions = staffWithoutCurrUser.map((user) => {
     return (
       <option key={user._id} value={user._id}>
         {user.username}
@@ -155,7 +146,10 @@ const EditLetter = () => {
     <div className="p-3 rounded bg-white shadow-sm">
       <div className="card text-bg-light d-flex flex-row gap-2 p-3 text-secondary">
         <i className="bi bi-info-circle text-secondary"></i>
-        This form allows you to edit this letter's details. It is not necessary to edit all the fields below, the fields that are left unendited will retain its current values. All of the fields below must not be left empty.
+        This form allows you to edit this letter's details. It is not necessary
+        to edit all the fields below, the fields that are left unendited will
+        retain its current values. All of the fields below must not be left
+        empty.
       </div>
 
       <header className="my-4">
@@ -164,7 +158,7 @@ const EditLetter = () => {
 
       <div className="d-flex gap-1">
         <Link className="btn btn-sm btn-secondary me-5" to="/dash/letters">
-          <i class="bi bi-arrow-left"></i> Letter Archive
+          <i className="bi bi-arrow-left"></i> Letter Archive
         </Link>
         <button
           className="btn btn-sm btn-outline-danger"
@@ -172,16 +166,11 @@ const EditLetter = () => {
           data-bs-toggle="modal"
           data-bs-target="#deleteModal"
         >
-          <i class="bi bi-trash"></i> Delete Letter
+          <i className="bi bi-trash"></i> Delete Letter
         </button>
       </div>
 
-      <div
-        class="modal fade"
-        id="deleteModal"
-        tabindex="-1"
-        aria-hidden="true"
-      >
+      <div class="modal fade" id="deleteModal" tabIndex="-1" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
@@ -203,7 +192,12 @@ const EditLetter = () => {
               >
                 Close
               </button>
-              <button type="button" data-bs-dismiss="modal" className="btn btn-danger" onClick={onDelete}>
+              <button
+                type="button"
+                data-bs-dismiss="modal"
+                className="btn btn-danger"
+                onClick={onDelete}
+              >
                 Yes, delete this letter
               </button>
             </div>
@@ -217,28 +211,15 @@ const EditLetter = () => {
           onSubmit={onSubmit}
           encType="multipart/form-data"
         >
-          <label className="form-label text-secondary" htmlFor="username">
-            Sender
-          </label>
-          <select
-            id="username"
-            name="username"
-            className="form-select"
-            value={getUsernameFromId(user)}
-            onChange={onUserChanged}
-            required
-          >
-            {userOptions}
-          </select>
 
-          <label className="form-label mt-3 text-secondary" htmlFor="recipient">
+          <label className="form-label text-secondary" htmlFor="recipient">
             Recipient
           </label>
           <select
             id="recipient"
             name="recipient"
             className="form-select"
-            value={getUsernameFromId(recipient)}
+            value={recipient}
             onChange={onRecipientChanged}
             required
           >
@@ -309,7 +290,9 @@ const EditLetter = () => {
             File previously uploaded
           </label>
           <div>
-            <span>{filename}</span>
+            <button className="btn btn-sm btn-primary" onClick={downloadFile}>
+              <i className="bi bi-file-earmark-arrow-down"></i> Download File
+            </button>
           </div>
 
           <label className="form-label mt-3 text-secondary" htmlFor="file">

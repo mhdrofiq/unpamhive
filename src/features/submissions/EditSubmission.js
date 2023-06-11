@@ -21,7 +21,7 @@ const EditSubmission = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState();
-  const [filename, setFilename] = useState('');
+  const [pdfUrl, setPdfUrl] = useState("");
 
   function getUsernameFromId(targetId) {
     let senderName = null;
@@ -31,10 +31,6 @@ const EditSubmission = () => {
       }
     }
     return senderName;
-  }
-
-  function getFilename(str){
-    return str.replace("uploads\\", "")
   }
 
   useEffect(() => {
@@ -53,28 +49,31 @@ const EditSubmission = () => {
       setTitle(letter[0].title);
       setDescription(letter[0].description);
       setCategory(letter[0].category);
-      setFilename(getFilename(letter[0].file));
     });
-  }, []);
 
-  useEffect(() => {
-    axios
-    .get(`/letters/download/${id}`, {
-      responseType: "blob",
+    axios.get(`/letters/${id}`, {
+      responseType: "arraybuffer",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/pdf",
+      },
     })
     .then((res) => {
-      const blob = new Blob([res.data], { type: res.data.type });
-      //console.log(filename)
-      const oldfile = new File([blob], filename, {type: 'application/pdf'})
-      setFile(oldfile);
+      //console.log(res.data)
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      // const oldfile = new File([res.data], title + ' pdf file', {type: 'application/pdf'})
+      // setFile(oldfile);
+      setPdfUrl(url);
     });
-  }, [filename])
+
+  }, []);
 
   const onRecipientChanged = (e) => setRecipient(e.target.value);
   const onCategoryChanged = (e) => setCategory(e.target.value);
   const onTitleChanged = (e) => setTitle(e.target.value);
   const onDescriptionChanged = (e) => setDescription(e.target.value);
   const onFileChanged = (e) => setFile(e.target.files[0]);
+
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -88,7 +87,8 @@ const EditSubmission = () => {
       formData.append("description", description);
       formData.append("letterStatus", 'Open');
       formData.append("rejectMessage", '');
-      formData.append("file", file);
+      { file ?  formData.append("file", file) : console.log('retain existing file') }
+
       const res = await axios.patch("/letters", formData);
       console.log(res.data);
       //this.props.history.push("/letters");
@@ -103,6 +103,15 @@ const EditSubmission = () => {
     }
     navigate("/dash/submissions");
   };
+
+  const downloadFile = (e) => {
+    e.preventDefault();
+    //console.log(file);
+    const link = document.createElement("a");
+    link.href = pdfUrl;
+    link.download = "dlass-letter-download.pdf";
+    link.click();
+  }
 
   const onDelete = async (e) => {
     e.preventDefault();
@@ -148,7 +157,7 @@ const EditSubmission = () => {
 
       <div className="d-flex gap-1">
         <Link className="btn btn-sm btn-secondary me-5" to="/dash/submissions">
-          <i class="bi bi-arrow-left"></i> My Submissions
+          <i className="bi bi-arrow-left"></i> My Submissions
         </Link>
         <button
           className="btn btn-sm btn-outline-danger"
@@ -156,14 +165,14 @@ const EditSubmission = () => {
           data-bs-toggle="modal"
           data-bs-target="#deleteModal"
         >
-          <i class="bi bi-trash"></i> Delete submission
+          <i className="bi bi-trash"></i> Delete submission
         </button>
       </div>
 
       <div
         class="modal fade"
         id="deleteModal"
-        tabindex="-1"
+        tabIndex="-1"
         aria-hidden="true"
       >
         <div className="modal-dialog">
@@ -209,7 +218,7 @@ const EditSubmission = () => {
             id="recipient"
             name="recipient"
             className="form-select"
-            value={getUsernameFromId(recipient)}
+            value={recipient}
             onChange={onRecipientChanged}
             required
           >
@@ -266,7 +275,9 @@ const EditSubmission = () => {
             File previously uploaded
           </label>
           <div>
-            <span>{filename}</span>
+          <button className="btn btn-sm btn-primary" onClick={downloadFile}>
+              <i className="bi bi-file-earmark-arrow-down"></i> Download File
+            </button>
           </div>
 
           <label className="form-label mt-3 text-secondary" htmlFor="file">

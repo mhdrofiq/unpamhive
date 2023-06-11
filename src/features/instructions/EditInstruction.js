@@ -2,6 +2,7 @@
 import axios from '../../api/axios'
 import DatePicker from "react-datepicker";
 import useTitle from '../../hooks/useTitle';
+import useAuth from '../../hooks/useAuth';
 
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -13,6 +14,7 @@ const EditInstruction = () => {
 
   useTitle("Edit Instruction");
   const { id } = useParams(); //this letter's id
+  const { auth } = useAuth();
   const navigate = useNavigate();
 
   const [staffusers, setStaffUsers] = useState([]);
@@ -24,21 +26,11 @@ const EditInstruction = () => {
   const [description, setDescription] = useState("");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
-  const [prevFile, setPrevFile] = useState("");
   const [file, setFile] = useState();
-
-  function getUsernameFromId(targetId) {
-    let senderName = null;
-    for (let i = 0; i < allUsers.length; i++) {
-      if (allUsers[i]._id === targetId) {
-        senderName = allUsers[i].username;
-        break;
-      }
-    }
-    return senderName;
-  }
+  const [pdfUrl, setPdfUrl] = useState("");
 
   useEffect(() => {
+
     axios.get(`/users`).then((res) => {
       setAllUsers(res.data);
     });
@@ -56,24 +48,25 @@ const EditInstruction = () => {
       setLetterNumber(letter[0].letterNumber);
       setStart(new Date(letter[0].start));
       setEnd(new Date(letter[0].end));
-      setPrevFile(letter[0].file);
-      setFile(letter[0].file);
     });
-    axios
-      .get(`/letters/download/${id}`, {
-        responseType: "blob",
-      })
-      .then((res) => {
-        const blob = new Blob([res.data], { type: res.data.type });
-        setFile(blob);
+    
+    axios.get(`/letters/${id}`, {
+      responseType: "arraybuffer",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/pdf",
+      },
+    })
+    .then((res) => {
+      //console.log(res.data)
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      // const oldfile = new File([res.data], title + ' pdf file', {type: 'application/pdf'})
+      // setFile(oldfile);
+      setPdfUrl(url);
+    });
 
-        // const oldfile = new File([blob], 'prevFile')
-        // setFile(oldfile);
-        // console.log(file);
-      });
   }, []);
 
-  const onUserChanged = (e) => setUser(e.target.value);
   const onRecipientChanged = (e) => setRecipient(e.target.value);
   const onTitleChanged = (e) => setTitle(e.target.value);
   const onLetterNumberChanged = (e) => setLetterNumber(e.target.value);
@@ -92,7 +85,8 @@ const EditInstruction = () => {
       formData.append("description", description);
       formData.append("start", start);
       formData.append("end", end);
-      formData.append("file", file);
+      { file ?  formData.append("file", file) : console.log('retain existing file') }
+
       const res = await axios.patch("/letters", formData);
       console.log(res.data);
       //this.props.history.push("/letters");
@@ -110,6 +104,16 @@ const EditInstruction = () => {
     navigate("/dash/instructions");
   };
 
+  const downloadFile = (e) => {
+    e.preventDefault();
+    //console.log(file);
+    const link = document.createElement("a");
+    link.href = pdfUrl;
+    link.download = "dlass-letter-download.pdf";
+    link.click();
+  }
+
+
   const onDelete = async (e) => {
     e.preventDefault();
     try {
@@ -125,7 +129,9 @@ const EditInstruction = () => {
     navigate("/dash/instructions");
   };
 
-  const staffOptions = staffusers.map((user) => {
+  const staffWithoutCurrUser = staffusers.filter((user) => user._id !== auth?.userId);
+
+  const staffOptions = staffWithoutCurrUser.map((user) => {
     return (
       <option key={user._id} value={user._id}>
         {user.username}
@@ -210,7 +216,7 @@ const EditInstruction = () => {
             id="recipient"
             name="recipient"
             className="form-select"
-            value={getUsernameFromId(recipient)}
+            value={recipient}
             onChange={onRecipientChanged}
             required
           >
@@ -277,7 +283,9 @@ const EditInstruction = () => {
             File previously uploaded
           </label>
           <div>
-            <span>{prevFile}</span>
+          <button className="btn btn-sm btn-primary" onClick={downloadFile}>
+              <i className="bi bi-file-earmark-arrow-down"></i> Download File
+            </button>
           </div>
 
           <label className="form-label mt-3 text-secondary" htmlFor="file">
