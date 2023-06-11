@@ -138,7 +138,7 @@ const ViewSubmission = () => {
     //   responseType: "arraybuffer"
     // })
     const existingPdfBytes = await fetch(
-      `http://localhost:3500/letters/${id}`
+      `https://unpamhive-api.onrender.com/letters/${id}`
     ).then((res) => res.arrayBuffer());
     // const existingPdfBytes = await fetch(
     //   `https://unpamhive-api.onrender.com/letters/download/${id}`
@@ -150,7 +150,7 @@ const ViewSubmission = () => {
     //   responseType: "arraybuffer"
     // })
     const pngImageBytes = await fetch(
-      `http://localhost:3500/signature/${auth?.userId}`
+      `https://unpamhive-api.onrender.com/signature/${auth?.userId}`
     ).then((res) => res.arrayBuffer());
     // const pngImageBytes = await fetch(
     //   `https://unpamhive-api.onrender.com/signature/${auth?.userId}`
