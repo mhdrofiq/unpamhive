@@ -124,7 +124,7 @@ const CreateSubmission = () => {
               and fill it out. Then, upload it to the form below.
             </p>
             <div className="mt-3">
-              // TODO: change link to official templates
+              {/* TODO: change link to official templates */}
               <a className="btn btn-sm btn-outline-success" href='https://drive.google.com/drive/folders/1bxk5S4FKMmAtl1i-xl7vznumWmM8UzM0?usp=drive_link'>
               <i className="bi bi-file-text"></i> Link to official templates
               </a>
