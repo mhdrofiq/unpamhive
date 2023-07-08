@@ -21,6 +21,8 @@ const SubmissionsList = () => {
       setRegularLetters(
         res.data.filter((letter) => letter.letterType === "Submission")
       );
+    }).catch(function (err){
+      setRegularLetters(['empty'])
     });
     axios.get(`/users`).then((res) => {
       setUsers(res.data);

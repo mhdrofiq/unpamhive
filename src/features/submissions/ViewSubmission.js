@@ -133,29 +133,24 @@ const ViewSubmission = () => {
 
   const onLetterApprove = async (e) => {
     e.preventDefault();
-    //TODO: update the base url after deployment
-    // const existingPdfBytes = await axios(`/letters/${id}`, {
-    //   responseType: "arraybuffer"
-    // })
-    const existingPdfBytes = await fetch(
-      `https://unpamhive-api.onrender.com/letters/${id}`
-    ).then((res) => res.arrayBuffer());
+    
+    // for deployment
     // const existingPdfBytes = await fetch(
-    //   `https://unpamhive-api.onrender.com/letters/download/${id}`
+    //   `https://unpamhive-api.onrender.com/letters/${id}`
     // ).then((res) => res.arrayBuffer());
-    // console.log(existingPdfBytes)
 
-    //TODO: update the base url after deployment
-    // const pngImageBytes = await axios(`/signature/${auth?.userId}`, {
-    //   responseType: "arraybuffer"
-    // })
-    const pngImageBytes = await fetch(
-      `https://unpamhive-api.onrender.com/signature/${auth?.userId}`
+    const existingPdfBytes = await fetch(
+      `http://localhost:3500/letters/${id}`
     ).then((res) => res.arrayBuffer());
+
+    // for deployment
     // const pngImageBytes = await fetch(
     //   `https://unpamhive-api.onrender.com/signature/${auth?.userId}`
     // ).then((res) => res.arrayBuffer());
-    // console.log(pngImageBytes)
+
+    const pngImageBytes = await fetch(
+      `http://localhost:3500/signature/${auth?.userId}`
+    ).then((res) => res.arrayBuffer());
 
     //load pdf file
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
@@ -228,7 +223,8 @@ const ViewSubmission = () => {
           height: "500px",
         }}
       >
-        <Worker workerUrl={`https://unpkg.com/pdfjs-dist@${pdfjsVersion}/build/pdf.worker.min.js`}>
+        <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.7.107/build/pdf.worker.min.js`}>
+        {/* <Worker workerUrl={`https://unpkg.com/pdfjs-dist@${pdfjsVersion}/build/pdf.worker.min.js`}> */}
           <Viewer fileUrl={pdfUrl} />
         </Worker>
       </div>

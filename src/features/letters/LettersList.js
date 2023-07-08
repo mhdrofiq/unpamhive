@@ -20,6 +20,8 @@ const LettersList = () => {
       setRegularLetters(
         res.data.filter((letter) => letter.letterType === "Letter")
       );
+    }).catch(function (err){
+      setRegularLetters(['empty'])
     });
     axios.get(`/users`).then((res) => {
       setUsers(res.data);

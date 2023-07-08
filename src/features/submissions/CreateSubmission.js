@@ -32,6 +32,8 @@ const CreateSubmission = () => {
       const fileteredUsers = res.data.filter((user) => (user.role === "Staff"))
       setStaffUsers(fileteredUsers);
       setRecipient(fileteredUsers[0]._id)
+    }).catch(function (err){
+      setRecipient(['empty'])
     });
   }, []);
 
@@ -125,7 +127,7 @@ const CreateSubmission = () => {
             </p>
             <div className="mt-3">
               {/* TODO: change link to official templates */}
-              <a className="btn btn-sm btn-outline-success" href='https://drive.google.com/drive/folders/1bxk5S4FKMmAtl1i-xl7vznumWmM8UzM0?usp=drive_link'>
+              <a className="btn btn-sm btn-outline-success" target="_blank" href='https://drive.google.com/drive/folders/1bxk5S4FKMmAtl1i-xl7vznumWmM8UzM0?usp=drive_link'>
               <i className="bi bi-file-text"></i> Link to official templates
               </a>
             </div>

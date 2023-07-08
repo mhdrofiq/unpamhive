@@ -31,6 +31,8 @@ const CreateInstruction = () => {
       );
       setStaffUsers(fileteredUsers);
       setRecipient(fileteredUsers[0]._id); // set default recipient id
+    }).catch(function (err){
+      setRecipient(['empty'])
     });
   }, []);
 
@@ -95,7 +97,7 @@ const CreateInstruction = () => {
 
       <div className="d-flex gap-1">
         <Link className="btn btn-sm btn-secondary me-5" to="/dash/instructions">
-          <i class="bi bi-arrow-left"></i> Instructions List
+          <i className="bi bi-arrow-left"></i> Instructions List
         </Link>
       </div>
 

@@ -27,6 +27,8 @@ const CreateLetter = () => {
       const fileteredUsers = res.data.filter((user) => (user.role === "Staff") && (user._id !== auth?.userId))
       setStaffUsers(fileteredUsers);
       setRecipient(fileteredUsers[0]._id)
+    }).catch(function (err){
+      setRecipient(['empty'])
     });
   }, []);
 
