@@ -90,7 +90,7 @@ const ViewInstruction = () => {
                     height: "500px",
                 }}
             >
-                <Worker workerUrl={`https://unpkg.com/pdfjs-dist@${pdfjsVersion}/build/pdf.worker.min.js`}>
+                <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.7.107/build/pdf.worker.min.js`}>
                     <Viewer fileUrl={pdfUrl} />
                 </Worker>
             </div>
